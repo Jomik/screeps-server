@@ -21,9 +21,14 @@ RUN chmod +x ./node_modules/.hooks/install ./node_modules/.hooks/uninstall
 FROM node:12-alpine as server
 
 COPY --from=screeps --chown=node /server /server/
+RUN mkdir /data && chown node /data
 
 USER node
 WORKDIR /server
+
+# Move the database file to shared directory
+RUN mv db.json /data/db.json && \
+  sed -i "s/db.json/\/data\/db.json/" .screepsrc
 
 # Install custom mods
 ARG NPM_MODS="screepsmod-auth screepsmod-admin-utils"
@@ -33,5 +38,6 @@ RUN test -z "${NPM_MODS}" || npm install -E ${NPM_MODS}
 COPY --chown=node ./mods ./local-mods
 RUN test -z "$(ls ./local-mods/)" || npm install -E ./local-mods/*
 
+VOLUME [ "/data" ]
 EXPOSE 21025
 ENTRYPOINT [ "node", "/server/node_modules/.bin/screeps" ,"start", "--steam_api_key", "${STEAM_KEY}" ]
