@@ -30,8 +30,11 @@ WORKDIR /server
 RUN mv db.json /data/db.json && \
   sed -i "s/db.json/\/data\/db.json/" .screepsrc
 
+# Install default mods
+RUN npm install -E screepsmod-auth screepsmod-admin-utils
+
 # Install custom mods
-ARG NPM_MODS="screepsmod-auth screepsmod-admin-utils"
+ARG NPM_MODS=""
 RUN test -z "${NPM_MODS}" || npm install -E ${NPM_MODS}
 
 # Install local mods
