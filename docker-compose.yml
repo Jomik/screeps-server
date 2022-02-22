@@ -1,0 +1,30 @@
+version: '3'
+services:
+  screeps:
+    image: jomik/screeps-server:latest-mongo
+    depends_on:
+      - mongo
+      - redis
+    ports:
+      - 21025:21025/tcp
+    environment:
+      MONGO_HOST: mongo
+      REDIS_HOST: redis
+      STEAM_KEY: ${STEAM_KEY:?"Missing steam key"}
+    restart: unless-stopped
+
+  mongo:
+    image: mongo
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+  redis:
+    image: redis
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  mongo-data:
