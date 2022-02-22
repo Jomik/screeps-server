@@ -2,6 +2,9 @@ name: Release to Docker Hub
 
 on:
   push:
+    paths:
+      - "mods/**"
+      - "Dockerfile"
     tags:
       - "v*.*.*"
     branches:
