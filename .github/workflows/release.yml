@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "v*.*.*"
+    branches:
+      - "main"
   pull_request:
     branches:
       - "main"
@@ -21,11 +23,22 @@ jobs:
           images: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.event.repository.name }}
           tags: |
-            type=schedule
-            type=ref,event=branch
+            type=edge,branch=main
             type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+      - name: Docker meta mongo
+        id: meta-mongo
+        uses: docker/metadata-action@v3
+        with:
+          flavor: |
+            latest=auto
+            suffix=-mongo,onlatest=true
+          images: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.event.repository.name }}
+          tags: |
+            type=edge,branch=main
+            type=ref,event=pr
             type=semver,pattern={{major}}
             type=sha
       - name: Set up Docker Buildx
@@ -44,3 +57,13 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push mongo flavor
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          build-args: |
+            NPM_MODS=screepsmod-mongo
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.event.repository.name }}:buildcache
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-mongo.outputs.tags }}
+          labels: ${{ steps.meta-mongo.outputs.labels }}
