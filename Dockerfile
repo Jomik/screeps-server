@@ -10,7 +10,7 @@ RUN npm install --save-exact screeps
 
 # Initialize screeps, similar to `screeps init`
 WORKDIR /server/node_modules/@screeps/launcher/init_dist
-RUN cp -a .screepsrc db.json node_modules/ mods.json /server/.
+RUN cp -a .screepsrc db.json mods.json node_modules/ assets/ /server/.
 
 # Gotta remove this Windows carriage return shenanigans
 WORKDIR /server
