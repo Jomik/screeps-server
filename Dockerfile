@@ -1,4 +1,5 @@
-FROM node:12-alpine as screeps
+ARG NODE_VERSION=10
+FROM node:${NODE_VERSION}-alpine as screeps
 
 # Install node-gyp dependencies 
 RUN apk add --no-cache python2 make gcc g++
@@ -18,7 +19,7 @@ RUN sed -i "s/\r//" .screepsrc ./node_modules/.hooks/install ./node_modules/.hoo
 # Make hooks runnable
 RUN chmod +x ./node_modules/.hooks/install ./node_modules/.hooks/uninstall
 
-FROM node:12-alpine as server
+FROM node:${NODE_VERSION}-alpine as server
 
 COPY --from=screeps --chown=node /server /server/
 RUN mkdir /data && chown node /data

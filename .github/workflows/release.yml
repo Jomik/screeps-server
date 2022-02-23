@@ -16,6 +16,15 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: [10, 12]
+        mods: ["", "screepsmod-mongo"]
+        include:
+          - mods: "screepsmod-mongo"
+            variant: "mongo"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -23,20 +32,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.event.repository.name }}
-          tags: |
-            type=edge,branch=main
-            type=ref,event=pr
-            type=semver,pattern={{major}}
-            type=sha
-      - name: Docker meta mongo
-        id: meta-mongo
-        uses: docker/metadata-action@v3
-        with:
           flavor: |
             latest=auto
-            suffix=-mongo,onlatest=true
+            suffix=${{ format('{0}{1}',
+              matrix.node != 10 && format('-node{0}', matrix.node) || '',
+              matrix.variant && format('-{0}', matrix.variant) || ''
+            ) }},onlatest=true
           images: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.event.repository.name }}
           tags: |
@@ -55,18 +56,25 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.event.repository.name }}:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.event.repository.name }}:buildcache,mode=max
+          build-args: |
+            NODE_VERSION=${{ matrix.node }}
+            NPM_MODS=${{ matrix.mods }}
+          cache-from: |
+            ${{
+              format(
+                'type=registry,ref={0}/{1}:buildcache-node{2},mode=max',
+                secrets.DOCKER_HUB_USERNAME, github.event.repository.name, matrix.node
+              )
+            }}
+          cache-to: |
+            ${{
+              matrix.mods == '' &&
+              format(
+                'type=registry,ref={0}/{1}:buildcache-node{2},mode=max',
+                secrets.DOCKER_HUB_USERNAME, github.event.repository.name, matrix.node
+              )
+              || ''
+            }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - name: Build and push mongo flavor
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          build-args: |
-            NPM_MODS=screepsmod-mongo
-          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.event.repository.name }}:buildcache
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-mongo.outputs.tags }}
-          labels: ${{ steps.meta-mongo.outputs.labels }}
