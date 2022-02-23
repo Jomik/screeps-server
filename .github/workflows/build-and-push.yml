@@ -1,17 +1,19 @@
-name: Release to Docker Hub
+name: Build and push to Docker Hub
 
 on:
-  push:
-    paths:
-      - "mods/**"
-      - "Dockerfile"
-    tags:
-      - "v*.*.*"
-    branches:
-      - "main"
-  pull_request:
-    branches:
-      - "main"
+  workflow_call:
+    inputs:
+      mods:
+        required: false
+        type: string
+      variant:
+        required: false
+        type: string
+    secrets:
+      username:
+        required: true
+      token:
+        required: true
 
 jobs:
   docker:
@@ -20,10 +22,6 @@ jobs:
     strategy:
       matrix:
         node: [10, 12]
-        mods: ["", "screepsmod-mongo"]
-        include:
-          - mods: "screepsmod-mongo"
-            variant: "mongo"
 
     steps:
       - name: Checkout
@@ -36,10 +34,10 @@ jobs:
             latest=auto
             suffix=${{ format('{0}{1}',
               matrix.node != 10 && format('-node{0}', matrix.node) || '',
-              matrix.variant && format('-{0}', matrix.variant) || ''
+              inputs.variant && format('-{0}', inputs.variant) || ''
             ) }},onlatest=true
           images: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.event.repository.name }}
+            ${{ secrets.username }}/${{ github.event.repository.name }}
           tags: |
             type=edge,branch=main
             type=ref,event=pr
@@ -50,28 +48,28 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          username: ${{ secrets.username }}
+          password: ${{ secrets.token }}
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           context: .
           build-args: |
             NODE_VERSION=${{ matrix.node }}
-            NPM_MODS=${{ matrix.mods }}
+            NPM_MODS=${{ inputs.mods }}
           cache-from: |
             ${{
               format(
                 'type=registry,ref={0}/{1}:buildcache-node{2},mode=max',
-                secrets.DOCKER_HUB_USERNAME, github.event.repository.name, matrix.node
+                secrets.username, github.event.repository.name, matrix.node
               )
             }}
           cache-to: |
             ${{
-              matrix.mods == '' &&
+              inputs.mods &&
               format(
                 'type=registry,ref={0}/{1}:buildcache-node{2},mode=max',
-                secrets.DOCKER_HUB_USERNAME, github.event.repository.name, matrix.node
+                secrets.username, github.event.repository.name, matrix.node
               )
               || ''
             }}

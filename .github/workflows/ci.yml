@@ -1,0 +1,30 @@
+name: Release to Docker Hub
+
+on:
+  push:
+    paths:
+      - "mods/**"
+      - "Dockerfile"
+    tags:
+      - "v*.*.*"
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  base:
+    uses: ./.github/workflows/build-and-push.yml
+    secrets:
+      username: ${{ secrets.DOCKER_HUB_USERNAME }}
+      token: ${{ secrets.DOCKER_HUB_TOKEN }}
+  mongo:
+    needs: base
+    uses: ./.github/workflows/build-and-push.yml
+    with:
+      mods: "screepsmod-mongo"
+      variant: "mongo"
+    secrets:
+      username: ${{ secrets.DOCKER_HUB_USERNAME }}
+      token: ${{ secrets.DOCKER_HUB_TOKEN }}
