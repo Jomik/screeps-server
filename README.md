@@ -6,47 +6,50 @@ The [screepers/screeps-launcher] does all setup and installation during the run 
 
 This image does all installation and setup during the build stage.
 So to launch the server, it will only start the server.
-A consequence is that mods and configuration should happen at build time.
-Nothing prevents a user from accessing a shell in the container to add these things after the image has been built however.
+Mods and bots are managed at startup by checking your `config.yml`.
+`npm` is only invoked if changes are made to your `config.yml`.
 
 ## Usage
 
 The recommended way to use this image is through docker compose.
-An example set up with [screepsmod-mongo] can be seen in the compose file [docker-compose.yml](docker-compose.yml) in this repo.
+An example setup with [screepsmod-mongo] can be seen in the compose file [docker-compose.yml](docker-compose.yml) in this repo.
 This spins up a server with a mongo and redis service beside it.
+Remember that `screepsmod-mongo` must be in the list of mods in your `config.yml`
 
-A lighter version without [screepsmod-mongo] can be found in [docker-compose-lite.yml](docker-compose-lite.yml)
-
-Copy your chosen compose file and run `docker-compose up`. You should see the services starting.
+Copy the compose file and run `docker-compose up`. You should see the services starting.
 You can now access your private screeps server on `http://localhost:21025`
 
-## What does the image contain?
-By default the image is built with [screepsmod-auth] and [screepsmod-admin-utils].
-We also have a built image with [screepsmod-mongo].
+A lighter alternative without mongo and redis could look like this
+```yml
+version: '3'
+services:
+  screeps:
+    image: jomik/screeps-server:latest
+    volumes:
+      - screeps-data:/data
+    ports:
+      - 21025:21025/tcp
+    environment:
+      STEAM_KEY: ${STEAM_KEY:?"Missing steam key"}
+    restart: unless-stopped
 
-To add additional mods or bots, you would have to build the image yourself.
+volumes:
+  screeps-data:
+
+```
 
 ## Customisation
-There are two ways to customise the bot. I would recommend customising the image and building it yourself, so that you have an snapshot of your setup.
 
-### Customise the image
-
-#### NPM
-You can add mods and bots from npm by setting the `NPM_MODS` build arg.
-`docker build -t screeps-server . --build-arg NPM_MODS="screepsmod-map-tool"` 
-Note that we always add [screepsmod-auth] and [screepsmod-admin-utils], but you have to manually add [screepsmod-mongo].
-
-#### Local
-You can add local mods or bots by creating a directory in the `mods` directory. In the root of your directory you should create a `package.json` with a property `screeps_mod: true` or `screeps_bot: true`. You can then run `docker build -t screeps-server .`
-
-### Update a running container
-You can always open a shell in your container and add to the setup there.
-If you use the above compose files, you would run `docker-compose exec screeps sh`.
-You can then run `npm install -E screepsmod-map-tool`.
-
-You can also add to the `mods` directory, `mods.json` and `.screepsrc`.
-
-Remember to restart the container afterwards with `docker-compose restart screeps`.
+Customisation is handled through `config.yml`. An example can be found in [config.sample.yml](config.sample.yml).
+```yml
+mods:
+  - screepsmod-auth
+  - screepsmod-admin-utils
+  - screepsmod-mongo
+bots:
+  simplebot: screepsbot-zeswarm
+  overmind: screeps-bot-overmind
+```
 
 
 [screepers/screeps-launcher]: https://github.com/screepers/screeps-launcher
