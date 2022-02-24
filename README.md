@@ -53,6 +53,6 @@ bots:
 
 
 [screepers/screeps-launcher]: https://github.com/screepers/screeps-launcher
-[screepsmod-auth]:(https://github.com/ScreepsMods/screepsmod-auth)
-[screepsmod-admin-utils]:(https://github.com/ScreepsMods/screepsmod-admin-utils)
-[screepsmod-mongo]:(https://github.com/ScreepsMods/screepsmod-mongo)
+[screepsmod-auth]: https://github.com/ScreepsMods/screepsmod-auth
+[screepsmod-admin-utils]: https://github.com/ScreepsMods/screepsmod-admin-utils
+[screepsmod-mongo]: https://github.com/ScreepsMods/screepsmod-mongo
