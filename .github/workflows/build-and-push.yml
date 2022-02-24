@@ -1,6 +1,8 @@
 name: Build and push to Docker Hub
 
 on:
+  schedule:
+    - cron: "0 * * * *"
   push:
     paths:
       - "mods/**"
@@ -14,13 +16,32 @@ on:
       - "main"
 
 jobs:
-  docker:
+  precondition:
+    name: Precondition
     runs-on: ubuntu-latest
+    outputs:
+      continue: ${{ steps.set_output.outputs.continue }}
+    steps:
+      - name: Fetch data
+        run: curl "https://registry.npmjs.com/screeps/latest" | jq -r '.version' > version
+      - name: Fetch Cache
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: version
+          key: ${{ hashFiles('version') }}
+      - name: Check condition
+        run: |
+          echo "::set-output name=continue::${{ steps.cache.outputs.cache-hit != 'true' || github.event_name != 'schedule' }}"
 
+  release:
+    name: Release
+    needs: [precondition]
+    if: needs.precondition.outputs.continue
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node: [10, 12]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -29,7 +50,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           flavor: |
-            latest=auto
+            latest=${{ github.event_name == 'schedule' && 'true' || 'auto' }}
             suffix=${{ format('{0}{1}',
               matrix.node != 10 && format('-node{0}', matrix.node) || '',
               inputs.variant && format('-{0}', inputs.variant) || ''
@@ -39,7 +60,7 @@ jobs:
           tags: |
             type=edge,branch=main
             type=ref,event=pr
-            type=semver,pattern={{major}}
+            type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
             type=sha
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
