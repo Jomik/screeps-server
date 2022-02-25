@@ -24,7 +24,7 @@ A lighter alternative without mongo and redis could look like this
 version: '3'
 services:
   screeps:
-    image: jomik/screeps-server:latest
+    image: jomik/screeps-server:edge
     volumes:
       - ./config.yml:/screeps/config.yml
       - screeps-data:/data

@@ -1,8 +1,7 @@
 version: '3'
 services:
   screeps:
-    # image: jomik/screeps-server:latest
-    build: .
+    image: jomik/screeps-server:edge
     depends_on:
       - mongo
       - redis
