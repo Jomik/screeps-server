@@ -7,6 +7,8 @@ services:
       - redis
     ports:
       - 21025:21025/tcp
+    volumes:
+      - ./config.yml:/screeps/config.yml
     environment:
       MONGO_HOST: mongo
       REDIS_HOST: redis

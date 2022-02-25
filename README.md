@@ -26,6 +26,7 @@ services:
   screeps:
     image: jomik/screeps-server:latest
     volumes:
+      - ./config.yml:/screeps/config.yml
       - screeps-data:/data
     ports:
       - 21025:21025/tcp
