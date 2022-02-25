@@ -1,8 +1,8 @@
 name: Build and push to Docker Hub
 
 on:
-  schedule:
-    - cron: "0 * * * *"
+  workflow_call:
+
   push:
     paths:
       - "Dockerfile"
@@ -17,29 +17,7 @@ on:
       - "main"
 
 jobs:
-  precondition:
-    name: Precondition
-    runs-on: ubuntu-latest
-    outputs:
-      continue: ${{ steps.set_output.outputs.continue }}
-    steps:
-      - name: Fetch data
-        run: curl "https://registry.npmjs.com/screeps/latest" | jq -r '.version' > version
-      - name: Fetch Cache
-        id: cache
-        uses: actions/cache@v2
-        with:
-          path: version
-          key: ${{ hashFiles('version') }}
-      - name: Check condition
-        id: set_output
-        run: |
-          echo "::set-output name=continue::${{ steps.cache.outputs.cache-hit != 'true' || github.event_name != 'schedule' }}"
-
   release:
-    name: Release
-    needs: [precondition]
-    if: needs.precondition.outputs.continue
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -52,13 +30,13 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           flavor: |
-            latest=${{ github.event_name == 'schedule' && 'true' || 'auto' }}
+            latest=auto
             suffix=${{ format('{0}{1}',
               matrix.node != 10 && format('-node{0}', matrix.node) || '',
               inputs.variant && format('-{0}', inputs.variant) || ''
             ) }},onlatest=true
           images: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.event.repository.name }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/screeps-server
           tags: |
             type=edge,branch=main
             type=ref,event=pr
@@ -81,14 +59,14 @@ jobs:
             ${{
               format(
                 'type=registry,ref={0}/{1}:buildcache-node{2},mode=max',
-                secrets.DOCKER_HUB_USERNAME, github.event.repository.name, matrix.node
+                secrets.DOCKER_HUB_USERNAME, screeps-server, matrix.node
               )
             }}
           cache-to: |
             ${{
               format(
                 'type=registry,ref={0}/{1}:buildcache-node{2},mode=max',
-                secrets.DOCKER_HUB_USERNAME, github.event.repository.name, matrix.node
+                secrets.DOCKER_HUB_USERNAME, screeps-server, matrix.node
               )
             }}
           push: ${{ github.event_name != 'pull_request' }}
