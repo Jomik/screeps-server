@@ -5,8 +5,9 @@ on:
     - cron: "0 * * * *"
   push:
     paths:
-      - "mods/**"
       - "Dockerfile"
+      - "screeps-cli.js"
+      - "screeps-start.js"
     tags:
       - "v*.*.*"
     branches:
@@ -31,6 +32,7 @@ jobs:
           path: version
           key: ${{ hashFiles('version') }}
       - name: Check condition
+        id: set_output
         run: |
           echo "::set-output name=continue::${{ steps.cache.outputs.cache-hit != 'true' || github.event_name != 'schedule' }}"
 

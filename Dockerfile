@@ -24,7 +24,8 @@ RUN mkdir /screeps && chown node /screeps
 USER node
 WORKDIR /server
 
-COPY screeps-cli.js ./bin/screeps
+COPY screeps-cli.js ./bin/cli
+COPY screeps-start.js ./bin/start
 ENV PATH="/server/bin:${PATH}"
 
 # Init mods package
@@ -39,4 +40,4 @@ RUN mv /server/db.json ./ && \
 WORKDIR /server
 VOLUME [ "/screeps" ]
 EXPOSE 21025
-ENTRYPOINT ["screeps" ,"start"]
+ENTRYPOINT ["start"]

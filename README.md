@@ -16,7 +16,7 @@ An example setup with [screepsmod-mongo] can be seen in the compose file [docker
 This spins up a server with a mongo and redis service beside it.
 Remember that `screepsmod-mongo` must be in the list of mods in your `config.yml`
 
-Copy the compose file and run `docker-compose up`. You should see the services starting.
+Copy the compose file and run `docker compose up`. You should see the services starting.
 You can now access your private screeps server on `http://localhost:21025`
 
 A lighter alternative without mongo and redis could look like this
@@ -38,6 +38,8 @@ volumes:
   screeps-data:
 
 ```
+
+To access the CLI you can use `docker compose exec screeps cli`
 
 ## Customisation
 
