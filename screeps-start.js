@@ -21,7 +21,8 @@ const getPackageName = (pkg) => {
 };
 
 const apply = async (config) => {
-  const { mods = [], bots = {} } = config;
+  const mods = config.mods || [];
+  const bots = config.bots || {};
   const packageJSON = loadPackage(ModsDir);
   const installedPackageNames = Object.keys(packageJSON.dependencies || {});
   const currentPackages = [...mods, ...Object.values(bots)];
