@@ -1,10 +1,12 @@
 #! /usr/bin/env node
+const fs = require("fs");
+const path = require("path");
 const screeps = require("@screeps/launcher");
 const _ = require("lodash");
-const path = require("path");
 const yaml = require("js-yaml");
-const fs = require("fs");
 const { execSync: exec } = require("child_process");
+
+const config = yaml.load(fs.readFileSync("/screeps/config.yml", "utf8"));
 
 const loadPackage = (dir) =>
   JSON.parse(fs.readFileSync(path.resolve(dir, "package.json"), "utf8"));
@@ -20,7 +22,7 @@ const getPackageName = (pkg) => {
   return pkg;
 };
 
-const apply = async (config) => {
+const applyModsAndBots = async () => {
   const mods = config.mods || [];
   const bots = config.bots || {};
   const packageJSON = loadPackage(ModsDir);
@@ -39,7 +41,7 @@ const apply = async (config) => {
     return;
   }
 
-  console.log("Applying changes to packages");
+  console.log("Applying changes to mods");
   if (gonePackages.length > 0) {
     console.log("Removing", ...gonePackages);
     exec(`npm uninstall --silent --no-progress ${gonePackages.join(" ")}`, {
@@ -59,18 +61,26 @@ const apply = async (config) => {
   const modsJSON = { mods: [], bots: {} };
   for (const pkg of mods) {
     const pkgDir = path.resolve(ModsDir, "node_modules", getPackageName(pkg));
-    const pkgJSON = loadPackage(pkgDir);
-    modsJSON.mods.push(
-      path.relative("/server", path.resolve(pkgDir, pkgJSON.main))
-    );
+    const { main } = loadPackage(pkgDir);
+    if (!main) {
+      console.warn(
+        `Missing 'main' key for ${pkg}, report this to the author of the package.`
+      );
+    }
+    modsJSON.mods.push(path.relative("/server", path.resolve(pkgDir, main)));
   }
 
   for (const [name, pkg] of Object.entries(bots)) {
     const pkgDir = path.resolve(ModsDir, "node_modules", getPackageName(pkg));
-    const pkgJSON = loadPackage(pkgDir);
+    const { main } = loadPackage(pkgDir);
+    if (!main) {
+      console.warn(
+        `Missing 'main' key for ${pkg}, report this to the author of the package.`
+      );
+    }
     modsJSON.bots[name] = path.relative(
       "/server",
-      path.dirname(path.resolve(pkgDir, pkgJSON.main))
+      path.dirname(path.resolve(pkgDir, main))
     );
   }
 
@@ -78,9 +88,7 @@ const apply = async (config) => {
 };
 
 const start = async () => {
-  const config = yaml.load(fs.readFileSync("/screeps/config.yml", "utf8"));
-
-  await apply(config);
+  await applyModsAndBots();
 
   await screeps.start(
     {
