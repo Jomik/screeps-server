@@ -44,9 +44,10 @@ const installPackages = () => {
 
   console.log("Updating mods...");
   execSync(
-    `npm install --no-progress -E ${[...mods, ...Object.values(bots)].join(
-      " "
-    )}`,
+    `npm install --logevel=error --no-progress -E ${[
+      ...mods,
+      ...Object.values(bots),
+    ].join(" ")}`,
     {
       cwd: ModsDir,
       stdio: "inherit",
