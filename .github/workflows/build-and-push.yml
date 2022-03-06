@@ -59,14 +59,14 @@ jobs:
             ${{
               format(
                 'type=registry,ref={0}/{1}:buildcache-node{2},mode=max',
-                secrets.DOCKER_HUB_USERNAME, screeps-server, matrix.node
+                secrets.DOCKER_HUB_USERNAME, 'screeps-server', matrix.node
               )
             }}
           cache-to: |
             ${{
               format(
                 'type=registry,ref={0}/{1}:buildcache-node{2},mode=max',
-                secrets.DOCKER_HUB_USERNAME, screeps-server, matrix.node
+                secrets.DOCKER_HUB_USERNAME, 'screeps-server', matrix.node
               )
             }}
           push: ${{ github.event_name != 'pull_request' }}

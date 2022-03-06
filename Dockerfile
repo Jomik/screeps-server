@@ -17,6 +17,7 @@ WORKDIR /server
 RUN sed -i "s/\r//" .screepsrc
 
 FROM node:${NODE_VERSION}-alpine as server
+RUN apk add --no-cache git
 
 COPY --from=screeps --chown=node /server /server/
 RUN mkdir /screeps && chown node /screeps
@@ -37,6 +38,7 @@ WORKDIR /screeps/data
 RUN mv /server/db.json ./ && \
   sed -i "s/db.json/\/screeps\/data\/db.json/" /server/.screepsrc
 
+ENV SERVER_DIR=/server CONFIG=/screeps/config.yml
 WORKDIR /server
 VOLUME [ "/screeps" ]
 EXPOSE 21025

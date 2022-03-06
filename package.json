@@ -1,0 +1,19 @@
+{
+  "name": "screeps-server",
+  "private": true,
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com-private:Jomik/screeps-server.git",
+  "author": "Jonas Holst Damtoft <jonasdamtoft@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@screeps/launcher": ":4.1.0",
+    "js-yaml": "^4.1.0",
+    "lodash": "3.10.1"
+  },
+  "scripts": {
+    "bootstrap": "mkdir -p server/mods && cd server/mods && npm init -y",
+    "clean": "rm -r server && yarn bootstrap",
+    "start": "CONFIG=config.yml SERVER_DIR=server/ ./screeps-start.js"
+  }
+}

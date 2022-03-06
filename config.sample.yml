@@ -5,3 +5,4 @@ mods:
 bots:
   simplebot: screepsbot-zeswarm
   overmind: screeps-bot-overmind
+  tooangel: TooAngel/screeps
