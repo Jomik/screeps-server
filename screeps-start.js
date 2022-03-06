@@ -1,9 +1,8 @@
 #! /usr/bin/env node
 const fs = require("fs");
 const path = require("path");
-const _ = require("lodash");
 const yaml = require("js-yaml");
-const { execSync: exec, execSync } = require("child_process");
+const { execSync } = require("child_process");
 
 const RootDir = process.env["SERVER_DIR"];
 const ConfigFile = process.env["CONFIG"];
@@ -19,17 +18,6 @@ const loadPackage = (dir) =>
   JSON.parse(fs.readFileSync(path.resolve(dir, "package.json"), "utf8"));
 
 const ModsDir = path.resolve(RootDir, "mods");
-
-const isLocalPackage = /^(\.){0,2}\//.test;
-
-const getPackageName = (pkg) => {
-  const i = pkg.lastIndexOf("@");
-  // Scopes start with @
-  if (i > 0) {
-    return pkg.substring(0, i);
-  }
-  return pkg;
-};
 
 const installPackages = () => {
   const mods = config.mods || [];
