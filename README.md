@@ -14,10 +14,7 @@ Mods and bots are managed at startup by checking your `config.yml`.
 
 **Step 2:  Download Docker Desktop** 
 
-- [Download For Mac (Intel)](https://desktop.docker.com/mac/main/amd64/Docker.dmg?utm_source=docker&utm_medium=webreferral&utm_campaign=dd-smartbutton&utm_location=module) 
-- [Download For Mac (Apple Silicon)](https://desktop.docker.com/mac/main/arm64/Docker.dmg?utm_source=docker&utm_medium=webreferral&utm_campaign=dd-smartbutton&utm_location=module)
-- [Download For Windows](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe?utm_source=docker&utm_medium=webreferral&utm_campaign=dd-smartbutton&utm_location=module)
-- [Download For Linux](https://docs.docker.com/desktop/linux/install/)
+- [Download](https://www.docker.com/products/docker-desktop/)
 
 **Step 3: Open your download directory `.../screeps-server/`** 
 
