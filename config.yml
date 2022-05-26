@@ -6,22 +6,3 @@ bots:
   simplebot: screepsbot-zeswarm
   overmind: screeps-bot-overmind
   tooangel: TooAngel/screeps
-serverConfig: 
-  map: random_1x2 # utils.importMap will be called automatically with this value, see utils.importMap above
-  tickRate: 200
-  socketUpdateRate: 200
-  whitelist: # Does not restrict login, only restricts spawning
-  - xtwistedx
-  shardName: 'private-server'
-  constants:
-    UPGRADE_POWER: 10
-    POWER_CREEP_SPAWN_COOLDOWN: 3600000 # 1 Hour
-    POWER_CREEP_DELETE_COOLDOWN: 3600000
-  welcomeText: |
-    <h1>Welcome</h1>
-    <div>Powered by screepsmod-admin-utils</div>
-  statsToken: ...splusToken... # This enables submitting stats to S+ Grafana. Note: shardName MUST be set
-  gclToCPU: true
-  maxCPU: 300
-  baseCPU: 30
-  stepCPU: 10
