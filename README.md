@@ -27,14 +27,11 @@ Mods and bots are managed at startup by checking your `config.yml`.
 
 **Step 5: Use Docker to setup an instance.** 
 
-- Windows
-	- Open Windows Powershell
+	- Open a terminal
 	- Navigate to your `screeps-server` directory. 
-		- `cd /screeps-server/`
-	- Run `docker compose up`
+		- `cd /path/to/screeps-server/`
+	- Run `docker compose up` (Press `CTRL + C` to stop the server again)
 	- To open CLI run `docker compose exec screeps cli`
-- Linux & Apple
-	- *Not added yet.*
 ## Usage
 **Launching The Server**
 
