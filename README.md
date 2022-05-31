@@ -20,12 +20,13 @@ Mods and bots are managed at startup by checking your `config.yml`.
 
 **Step 4: Edit `config.yml`**
 
-- Add your username to the `whitelist:`
 - Adjust other settings to your likings.
-	- [Docs: screepsmod-auth](https://github.com/ScreepsMods/screepsmod-auth)
-	- [Docs: screepsmod-admin-utils](https://github.com/ScreepsMods/screepsmod-admin-utils)
+  - [Docs: screepsmod-auth](https://github.com/ScreepsMods/screepsmod-auth)
+  - [Docs: screepsmod-admin-utils](https://github.com/ScreepsMods/screepsmod-admin-utils)
 
-**Step 5: Use Docker to setup an instance.** 
+**Step 5:** Edit `.env.sample` by adding your Steam API Key
+
+**Step 6: Use Docker to setup an instance.** 
 
 	- Open a terminal
 	- Navigate to your `screeps-server` directory. 
@@ -33,28 +34,20 @@ Mods and bots are managed at startup by checking your `config.yml`.
 	- Run `docker compose up` (Press `CTRL + C` to stop the server again)
 	- To open CLI run `docker compose exec screeps cli`
 ## Usage
+
 **Launching The Server**
 
 - ***Via Docker Desktop***
 	
 	- If you installed everything properly using the recommended settings above, you can simply launch `Docker Desktop` and you'll see an option there for `screeps-server` which contains instances of screeps, mongo, and redis. Simply hit the `Play/Start` button on the `screeps_server` section.
-	
 - ***Via Docker Cli***
-	
-	- Windows Powershell
-		- Navigate to your `screeps-server` directory.
-		- Run `docker compose up`
-		
-	- Terminal (Linux & Mac)
-		- *Not added yet.*
+	- Navigate to your `screeps-server` directory.
+	- Run `docker compose up`
 
 **Launching The CLI**
 
-- Windows Powershell
-  - Navigate to your `screeps-server` directory.
-  - Run `docker compose exec screeps cli`
-- Terminal (Linux & Mac)
-  - *Not added yet.*
+- Navigate to your `screeps-server` directory.
+- Run `docker compose exec screeps cli`
 
 ## Customization
 Customization is handled through `config.yml` located in your `screeps-server` directory.
@@ -74,10 +67,8 @@ bots:
 - I can't push any code via `rollup` to my server.
   - Make sure your `screeps.json` configuration in your project is set properly. 
   - In your `email:` field, simply put in your `username`. Verify your password is the same as your `screepsmod-auth` setting.
-
 - My map is all red, I can't actually spawn in!
   - Restart your server, check your configuration and follow the instructions for [screepsmod-admin-utils](https://github.com/ScreepsMods/screepsmod-admin-utils)
-  - Ensure your username is set to the `whitelist:` setting in `config.yml`
 
 ## Resources & Docs
 [screepers/screeps-launcher]: https://github.com/screepers/screeps-launcher
