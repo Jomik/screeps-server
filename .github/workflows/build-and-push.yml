@@ -29,6 +29,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
+          github-token: ${{ github.token }}
           flavor: |
             latest=auto
             suffix=${{ format('{0}{1}',

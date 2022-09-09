@@ -41,6 +41,7 @@ const installPackages = () => {
       stdio: "inherit",
     }
   );
+  console.log("Done updating");
 };
 
 const writeModsConfiguration = () => {
@@ -77,6 +78,7 @@ const writeModsConfiguration = () => {
     path.resolve(RootDir, "mods.json"),
     JSON.stringify(modsJSON, null, 2)
   );
+  console.log("Mods have been configured");
 };
 
 const start = async () => {
