@@ -20,31 +20,74 @@ const loadPackage = (dir) =>
 const ModsDir = path.resolve(RootDir, "mods");
 
 const installPackages = () => {
+  console.log("Updating dependencies");
   const mods = config.mods || [];
   const bots = config.bots || {};
-  const modsPackage = loadPackage(ModsDir);
-  delete modsPackage["dependencies"];
 
+  const modsPackage = loadPackage(ModsDir);
+  const alreadyInstalledPackages = modsPackage.mods || [];
+  const dependencies = modsPackage.dependecies || {};
+
+  // Calculate package diff
+  const packages = [...mods, ...Object.values(bots)];
+
+  const newPackages = packages.filter(
+    (p) => !alreadyInstalledPackages.includes(p)
+  );
+  const removedPackages = alreadyInstalledPackages.filter(
+    (p) => !packages.includes(p)
+  );
+
+  if (removedPackages.length === 0 && newPackages.length === 0) {
+    console.log("No dependency changes");
+  }
+
+  if (removedPackages.length > 0) {
+    const packageNames = removedPackages
+      .map((pkg) => {
+        const entry =
+          Object.entries(dependencies).find(
+            ([name, version]) => pkg.includes(name) || version.includes(pkg)
+          ) || [];
+        return [pkg, entry[0]];
+      })
+      .filter(([, pkg]) => pkg !== undefined);
+
+    console.log("Uninstalling", ...packageNames.map(([name]) => name));
+    execSync(
+      `npm uninstall --logevel=error --no-progress ${packageNames
+        .map(([, pkg]) => pkg)
+        .join(" ")}`,
+      {
+        cwd: ModsDir,
+        stdio: "inherit",
+      }
+    );
+  }
+
+  if (newPackages.length > 0) {
+    console.log("Installing", ...newPackages);
+    execSync(
+      `npm install --logevel=error --no-progress -E ${newPackages.join(" ")}`,
+      {
+        cwd: ModsDir,
+        stdio: "inherit",
+      }
+    );
+  }
+
+  const newPackage = loadPackage(ModsDir);
+  newPackage["mods"] = packages;
   fs.writeFileSync(
     path.resolve(ModsDir, "package.json"),
-    JSON.stringify(modsPackage, null, 2)
+    JSON.stringify(newPackage, null, 2)
   );
 
-  console.log("Updating mods...");
-  execSync(
-    `npm install --logevel=error --no-progress -E ${[
-      ...mods,
-      ...Object.values(bots),
-    ].join(" ")}`,
-    {
-      cwd: ModsDir,
-      stdio: "inherit",
-    }
-  );
   console.log("Done updating");
 };
 
 const writeModsConfiguration = () => {
+  console.log("Writing mods configuration");
   const mods = config.mods || [];
   const bots = config.bots || {};
   const { dependencies } = loadPackage(ModsDir);
