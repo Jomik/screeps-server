@@ -26,7 +26,7 @@ const installPackages = () => {
 
   const modsPackage = loadPackage(ModsDir);
   const alreadyInstalledPackages = modsPackage.mods || [];
-  const dependencies = modsPackage.dependecies || {};
+  const dependencies = modsPackage.dependencies || {};
 
   // Calculate package diff
   const packages = [...mods, ...Object.values(bots)];
@@ -49,11 +49,11 @@ const installPackages = () => {
           Object.entries(dependencies).find(
             ([name, version]) => pkg.includes(name) || version.includes(pkg)
           ) || [];
-        return [pkg, entry[0]];
+        return entry[0];
       })
-      .filter(([, pkg]) => pkg !== undefined);
+      .filter((name) => name !== undefined);
 
-    console.log("Uninstalling", ...packageNames.map(([name]) => name));
+    console.log("Uninstalling", ...packageNames);
     execSync(
       `npm uninstall --logevel=error --no-progress ${packageNames
         .map(([, pkg]) => pkg)
