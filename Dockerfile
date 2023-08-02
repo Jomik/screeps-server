@@ -38,7 +38,7 @@ WORKDIR /screeps/data
 RUN mv /server/db.json ./ && \
   sed -i "s/db.json/\/screeps\/data\/db.json/" /server/.screepsrc
 
-ENV SERVER_DIR=/server CONFIG=/screeps/config.yml
+ENV SERVER_DIR=/server CONFIG=/screeps/config.yml NODE_ENV=production
 WORKDIR /server
 VOLUME [ "/screeps" ]
 EXPOSE 21025
