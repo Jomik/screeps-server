@@ -19,23 +19,28 @@ const loadPackage = (dir) =>
 
 const ModsDir = path.resolve(RootDir, "mods");
 
+const isDependency = (pkg, [name, version]) =>
+  pkg.includes(name) || version.includes(pkg);
+
 const installPackages = () => {
   console.log("Updating dependencies");
   const mods = config.mods || [];
   const bots = config.bots || {};
 
   const modsPackage = loadPackage(ModsDir);
-  const alreadyInstalledPackages = modsPackage.mods || [];
   const dependencies = modsPackage.dependencies || {};
 
   // Calculate package diff
   const packages = [...mods, ...Object.values(bots)];
 
   const newPackages = packages.filter(
-    (p) => !alreadyInstalledPackages.includes(p)
+    (pkg) =>
+      !Object.entries(dependencies).some((dependency) =>
+        isDependency(pkg, dependency)
+      )
   );
-  const removedPackages = alreadyInstalledPackages.filter(
-    (p) => !packages.includes(p)
+  const removedPackages = Object.entries(dependencies).filter(
+    (dependency) => !packages.some((pkg) => isDependency(pkg, dependency))
   );
 
   if (removedPackages.length === 0 && newPackages.length === 0) {
@@ -77,7 +82,6 @@ const installPackages = () => {
   }
 
   const newPackage = loadPackage(ModsDir);
-  newPackage["mods"] = packages;
   fs.writeFileSync(
     path.resolve(ModsDir, "package.json"),
     JSON.stringify(newPackage, null, 2)
