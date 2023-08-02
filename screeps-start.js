@@ -60,9 +60,7 @@ const installPackages = () => {
 
     console.log("Uninstalling", ...packageNames);
     execSync(
-      `npm uninstall --logevel=error --no-progress ${packageNames
-        .map(([, pkg]) => pkg)
-        .join(" ")}`,
+      `npm uninstall --logevel=error --no-progress ${packageNames.join(" ")}`,
       {
         cwd: ModsDir,
         stdio: "inherit",
