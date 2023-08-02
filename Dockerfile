@@ -1,12 +1,19 @@
 ARG NODE_VERSION=10
+# TODO: Specify this in pipeline.
+# Setup pipelines to run on npm hook.
+# Requires proxy...
+ARG SCREEPS_VERSION=latest
 FROM node:${NODE_VERSION}-alpine as screeps
 
-# Install node-gyp dependencies 
+# Install node-gyp dependencies
+# We do not pin as we use multiple node versions.
+# They are so old that there is no changes to their package registry anyway..
+# hadolint ignore=DL3018
 RUN apk add --no-cache python2 make gcc g++
 
 # Install screeps
 WORKDIR /server
-RUN npm install --save-exact screeps js-yaml
+RUN npm install --save-exact "screeps@${SCREEPS_VERSION}" "js-yaml@4.1.0"
 
 # Initialize screeps, similar to `screeps init`
 WORKDIR /server/node_modules/@screeps/launcher/init_dist
@@ -17,6 +24,7 @@ WORKDIR /server
 RUN sed -i "s/\r//" .screepsrc
 
 FROM node:${NODE_VERSION}-alpine as server
+# hadolint ignore=DL3018
 RUN apk add --no-cache git
 
 COPY --from=screeps --chown=node /server /server/
