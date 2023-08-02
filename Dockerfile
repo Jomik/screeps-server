@@ -6,7 +6,7 @@ RUN apk add --no-cache python2 make gcc g++
 
 # Install screeps
 WORKDIR /server
-RUN npm install --save-exact screeps js-yaml
+RUN yarn add --exact screeps js-yaml
 
 # Initialize screeps, similar to `screeps init`
 WORKDIR /server/node_modules/@screeps/launcher/init_dist
@@ -31,7 +31,7 @@ ENV PATH="/server/bin:${PATH}"
 
 # Init mods package
 WORKDIR /server/mods
-RUN npm init -y
+RUN yarn init -y
 
 # Move the database file to shared directory
 WORKDIR /screeps/data

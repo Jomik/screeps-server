@@ -12,7 +12,7 @@
     "lodash": "3.10.1"
   },
   "scripts": {
-    "bootstrap": "mkdir -p server/mods && cd server/mods && npm init -y",
+    "bootstrap": "mkdir -p server/mods && cd server/mods && yarn init -y",
     "clean": "rm -r server && yarn bootstrap",
     "start": "CONFIG=config.yml SERVER_DIR=server/ ./screeps-start.js"
   }
