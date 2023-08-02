@@ -8,7 +8,7 @@ The [screepers/screeps-launcher] does all setup and installation during the run 
 This image does all installation and setup during the build stage.
 So to launch the server, it will only start the server.
 Mods and bots are managed at startup by checking your `config.yml`.
-`npm` is only invoked if changes are made to your `config.yml`.
+`yarn` is only invoked if changes are made to your `config.yml`.
 
 ## Getting started, configuration, updating and troubleshooting
 

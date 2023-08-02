@@ -10,9 +10,9 @@ RUN --mount=type=cache,target=/etc/apk/cache \
 
 # Install screeps
 WORKDIR /screeps
-COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm \
-  npm clean-install
+COPY package.json yarn.lock ./
+RUN --mount=type=cache,target=/root/.yarn \
+  YARN_CACHE_FOLDER=/root/.yarn yarn install --frozen-lockfile
 
 # Initialize screeps, similar to `screeps init`
 RUN cp -a /screeps/node_modules/@screeps/launcher/init_dist/.screepsrc ./ && \
