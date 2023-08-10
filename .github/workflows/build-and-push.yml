@@ -56,20 +56,8 @@ jobs:
           context: .
           build-args: |
             NODE_VERSION=${{ matrix.node }}
-          cache-from: |
-            ${{
-              format(
-                'type=registry,ref={0}/{1}:buildcache-node{2},mode=max',
-                secrets.DOCKER_HUB_USERNAME, 'screeps-server', matrix.node
-              )
-            }}
-          cache-to: |
-            ${{
-              format(
-                'type=registry,ref={0}/{1}:buildcache-node{2},mode=max',
-                secrets.DOCKER_HUB_USERNAME, 'screeps-server', matrix.node
-              )
-            }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

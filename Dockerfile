@@ -9,11 +9,13 @@ FROM node:${NODE_VERSION}-alpine as screeps
 # We do not pin as we use multiple node versions.
 # They are so old that there is no changes to their package registry anyway..
 # hadolint ignore=DL3018
-RUN apk add --no-cache python2 make gcc g++
+RUN --mount=type=cache,target=/etc/apk/cache \
+  apk add --no-cache python2 make gcc g++
 
 # Install screeps
 WORKDIR /server
-RUN npm install --save-exact "screeps@${SCREEPS_VERSION}" "js-yaml@4.1.0"
+RUN --mount=type=cache,target=/root/.npm \
+  npm install --save-exact "screeps@${SCREEPS_VERSION}" "js-yaml@4.1.0"
 
 # Initialize screeps, similar to `screeps init`
 WORKDIR /server/node_modules/@screeps/launcher/init_dist
@@ -25,7 +27,8 @@ RUN sed -i "s/\r//" .screepsrc
 
 FROM node:${NODE_VERSION}-alpine as server
 # hadolint ignore=DL3018
-RUN apk add --no-cache git
+RUN --mount=type=cache,target=/var/cache/apk \
+  apk add --no-cache git
 
 COPY --from=screeps --chown=node /server /server/
 RUN mkdir /screeps && chown node /screeps
