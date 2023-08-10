@@ -42,12 +42,14 @@ WORKDIR /server/mods
 RUN npm init -y
 
 # Move the database file to shared directory
-WORKDIR /screeps/data
-RUN mv /server/db.json ./ && \
-  sed -i "s/db.json/\/screeps\/data\/db.json/" /server/.screepsrc
+WORKDIR /data
+RUN mv /server/db.json /data/db.json && \
+  sed -i "s/db.json/\/data\/db.json/" /server/.screepsrc
 
-ENV SERVER_DIR=/server CONFIG=/screeps/config.yml NODE_ENV=production
+RUN ln -s /screeps/config.yml /server/config.yml
+
+ENV SERVER_DIR=/server NODE_ENV=production
 WORKDIR /server
-VOLUME [ "/screeps" ]
+VOLUME [ "/screeps", "/data" ]
 EXPOSE 21025
 ENTRYPOINT ["start"]
