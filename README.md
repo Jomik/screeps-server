@@ -1,3 +1,5 @@
+![Docker Pulls](https://img.shields.io/docker/pulls/jomik/screeps-server?link=https%3A%2F%2Fhub.docker.com%2Fr%2Fjomik%2Fscreeps-server)
+
 This is an alternative to [screepers/screeps-launcher]
 
 ## Why?
