@@ -5,14 +5,13 @@ const yaml = require("js-yaml");
 const { execSync } = require("child_process");
 
 const RootDir = process.env["SERVER_DIR"];
-const ConfigFile = process.env["CONFIG"];
-if (!RootDir || !ConfigFile) {
-  throw new Error(
-    "Missing environment variables, check $SERVER_DIR and $CONFIG"
-  );
+if (!RootDir) {
+  throw new Error("Missing environment variable $SERVER_DIR");
 }
 
-const config = yaml.load(fs.readFileSync(ConfigFile, "utf8"));
+const config = yaml.load(
+  fs.readFileSync(path.join(RootDir, "config.yml"), "utf8")
+);
 
 const loadPackage = (dir) =>
   JSON.parse(fs.readFileSync(path.resolve(dir, "package.json"), "utf8"));
