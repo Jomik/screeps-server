@@ -7,7 +7,6 @@ services:
       - redis
     ports:
       - 21025:21025/tcp
-      - 21026:21026/tcp
     volumes:
       - ./config.yml:/screeps/config.yml
     environment:

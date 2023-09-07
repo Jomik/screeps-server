@@ -54,6 +54,5 @@ RUN ln -s /screeps/config.yml /server/config.yml
 ENV SERVER_DIR=/server NODE_ENV=production
 WORKDIR /server
 VOLUME [ "/screeps", "/data" ]
-EXPOSE 21025/tcp
-EXPOSE 21026/tcp
+EXPOSE 21025
 ENTRYPOINT ["start"]
