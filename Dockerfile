@@ -56,7 +56,7 @@ WORKDIR /server
 VOLUME [ "/screeps", "/data" ]
 EXPOSE 21025
 
-HEALTHCHECK  --interval=5m --timeout=3s \
+HEALTHCHECK --start-period=5m --interval=5m --timeout=3s \
   CMD wget --no-verbose --tries=1 --spider http://localhost:21025/ || exit 1
 
 ENTRYPOINT ["start"]
