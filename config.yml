@@ -4,6 +4,3 @@ mods:
   - screepsmod-mongo
 bots:
   simplebot: screepsbot-zeswarm
-  overmind: screeps-bot-overmind
-  tooangel: git+https://github.com/TooAngel/screeps
-  commiebot: the-international-screeps-bot
