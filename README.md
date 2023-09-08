@@ -12,65 +12,59 @@ So to launch the server, it will only start the server.
 Mods and bots are managed at startup by checking your `config.yml`.
 `npm` is only invoked if changes are made to your `config.yml`.
 
-## Installation (Recommended)
+## Getting started
 
-**Step 1: Clone/Download this repository.**
+### Prerequisites
 
-**Step 2: Download Docker Desktop**
+A working [Docker](https://www.docker.com/) installation.
+You can use [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
-- [Download](https://www.docker.com/products/docker-desktop/)
+### Setup
 
-**Step 3: Open your download directory `.../screeps-server/`**
+Download the [./docker-compose.yml](compose file), [./.env.sample](envfile) and [./config.yml](configuration) file to your computer. You can put this in your Screeps project.
+Copy `.env.sample` to `.env`, this can hold secrets for you, and should be ignored in git!
 
-**Step 4: Edit `config.yml`**
+You can use this command (in a shell) to do the above, in your current directory.
 
-- Adjust other settings to your likings.
-  - [Docs: screepsmod-auth](https://github.com/ScreepsMods/screepsmod-auth)
-  - [Docs: screepsmod-admin-utils](https://github.com/ScreepsMods/screepsmod-admin-utils)
-
-**Step 5:** Edit `.env.sample` by adding your Steam API Key
-
-**Step 6: Use Docker to setup an instance.**
-
-    - Open a terminal
-    - Navigate to your `screeps-server` directory.
-    	- `cd /path/to/screeps-server/`
-    - Run `docker compose up` (Press `CTRL + C` to stop the server again)
-    - To open CLI run `docker compose exec screeps cli`
-
-## Usage
-
-**Launching The Server**
-
-- **_Via Docker Desktop_**
-  - If you installed everything properly using the recommended settings above, you can simply launch `Docker Desktop` and you'll see an option there for `screeps-server` which contains instances of screeps, mongo, and redis. Simply hit the `Play/Start` button on the `screeps_server` section.
-- **_Via Docker Cli_**
-  - Navigate to your `screeps-server` directory.
-  - Run `docker compose up`
-
-**Launching The CLI**
-
-- Navigate to your `screeps-server` directory.
-- Run `docker compose exec screeps cli`
-
-## Customization
-
-Customization is handled through `config.yml` located in your `screeps-server` directory.
-
-```yml
-mods:
-  - screepsmod-auth
-  - screepsmod-admin-utils
-  - screepsmod-mongo
-bots:
-  simplebot: screepsbot-zeswarm
-  overmind: screeps-bot-overmind
+```sh
+curl --remote-name-all https://raw.githubusercontent.com/Jomik/screeps-server/main/{docker-compose.yml,.env.sample,config.yml} && cp .env.sample .env && echo ".env" >> .gitignore
 ```
+
+Paste your [Steam API key](https://steamcommunity.com/dev/apikey) into `.env`.
+
+### Configuration
+
+Edit `config.yml` to add mods and bots. Some mods also look there for configuration.
+We currently add the following mods, as default:
+
+- [screepsmod-auth]
+- [screepsmod-admin-utils]
+- [screepsmod-mongo]
+
+### Starting the server
+
+In your project run `docker compose up -d`.
+Run `docker compose logs screeps -f` to view and follow the logs for the screeps-server container.
+To stop following the logs, press `CTRL + C`.
+Assuming nothing went wrong, you should be able to connect to your server on `http://localhost:21025`.
+
+### Accessing the CLI
+
+Run `docker compose exec screeps cli`.
+
+It is also possible to access the from outside the container via a REST API.
+This can be accomplished using [screepsmod-cli].
+Simply add it to your `config.yml` and configure it appropriately according to the [readme](https://github.com/glitchassassin/screepsmod-cli/tree/main#readme).
+
+### Updating
+
+Ensure that your setup applies to any new prerequisites listed above.
+Run `docker compose pull` to download any new version of the image.
 
 ## Troubleshooting
 
 - Help, my server is running but I can't connect.
-  - Follow the instructions for [screepsmod-auth](https://github.com/ScreepsMods/screepsmod-auth)
+  - Follow the instructions for [screepsmod-auth]
 - I can't push any code via `rollup` to my server.
   - Make sure your `screeps.json` configuration in your project is set properly.
   - In your `email:` field, simply put in your `username`. Verify your password is the same as your `screepsmod-auth` setting.
@@ -82,11 +76,10 @@ bots:
     - Step 2: Run `docker compose exec screeps cli`
     - Step 3: Run `system.resetAllData()` and reconnect.
 
-  - Restart your server, check your configuration and follow the instructions for [screepsmod-admin-utils](https://github.com/ScreepsMods/screepsmod-admin-utils)
-
-## Resources & Docs
+  - Restart your server, check your configuration and follow the instructions for [screepsmod-admin-utils]
 
 [screepers/screeps-launcher]: https://github.com/screepers/screeps-launcher
 [screepsmod-auth]: https://github.com/ScreepsMods/screepsmod-auth
 [screepsmod-admin-utils]: https://github.com/ScreepsMods/screepsmod-admin-utils
 [screepsmod-mongo]: https://github.com/ScreepsMods/screepsmod-mongo
+[screepsmod-cli]: https://github.com/glitchassassin/screepsmod-cli
