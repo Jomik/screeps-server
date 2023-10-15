@@ -13,16 +13,17 @@ RUN --mount=type=cache,target=/etc/apk/cache \
   apk add --no-cache python2 make gcc g++
 
 # Install screeps
-WORKDIR /server
+WORKDIR /screeps
 RUN --mount=type=cache,target=/root/.npm \
   npm install --save-exact "screeps@${SCREEPS_VERSION}" "js-yaml@4.1.0"
 
+RUN ls -la /screeps/node_modules/@screeps/launcher/init_dist
 # Initialize screeps, similar to `screeps init`
-WORKDIR /server/node_modules/@screeps/launcher/init_dist
-RUN cp -a .screepsrc db.json assets/ /server/.
+RUN cp -a /screeps/node_modules/@screeps/launcher/init_dist/.screepsrc ./ && \
+  cp -a /screeps/node_modules/@screeps/launcher/init_dist/db.json ./ && \
+  cp -a /screeps/node_modules/@screeps/launcher/init_dist/assets/ ./
 
 # Gotta remove this Windows carriage return shenanigans
-WORKDIR /server
 RUN sed -i "s/\r//" .screepsrc
 
 FROM node:${NODE_VERSION}-alpine as server
@@ -30,30 +31,24 @@ FROM node:${NODE_VERSION}-alpine as server
 RUN --mount=type=cache,target=/var/cache/apk \
   apk add --no-cache git
 
-COPY --from=screeps --chown=node /server /server/
-RUN mkdir /screeps && chown node /screeps
-
 USER node
-WORKDIR /server
-
-COPY screeps-cli.js ./bin/cli
-COPY screeps-start.js ./bin/start
-ENV PATH="/server/bin:${PATH}"
+COPY --from=screeps --chown=node:node /screeps /screeps/
 
 # Init mods package
-WORKDIR /server/mods
+WORKDIR /screeps/mods
 RUN npm init -y
 
 # Move the database file to shared directory
 WORKDIR /data
-RUN mv /server/db.json /data/db.json && \
-  sed -i "s/db.json/\/data\/db.json/" /server/.screepsrc
+RUN mv /screeps/db.json /data/db.json && \
+  sed -i "s/db.json/\/data\/db.json/" /screeps/.screepsrc
 
-RUN ln -s /screeps/config.yml /server/config.yml
+WORKDIR /screeps
+COPY screeps-cli.js ./bin/cli
+COPY screeps-start.js ./bin/start
+ENV SERVER_DIR=/screeps NODE_ENV=production PATH="/screeps/bin:${PATH}"
 
-ENV SERVER_DIR=/server NODE_ENV=production
-WORKDIR /server
-VOLUME [ "/screeps", "/data" ]
+VOLUME [ "/data" ]
 EXPOSE 21025
 
 HEALTHCHECK --start-period=5m --interval=5m --timeout=3s \
