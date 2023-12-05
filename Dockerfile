@@ -17,7 +17,6 @@ WORKDIR /screeps
 RUN --mount=type=cache,target=/root/.npm \
   npm install --save-exact "screeps@${SCREEPS_VERSION}" "js-yaml@4.1.0"
 
-RUN ls -la /screeps/node_modules/@screeps/launcher/init_dist
 # Initialize screeps, similar to `screeps init`
 RUN cp -a /screeps/node_modules/@screeps/launcher/init_dist/.screepsrc ./ && \
   cp -a /screeps/node_modules/@screeps/launcher/init_dist/db.json ./ && \

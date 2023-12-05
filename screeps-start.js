@@ -8,15 +8,16 @@ const RootDir = process.env["SERVER_DIR"];
 if (!RootDir) {
   throw new Error("Missing environment variable $SERVER_DIR");
 }
+const ConfigPath = process.env["CONFIG_FILE"] || "./config.yml";
 
-const config = yaml.load(
-  fs.readFileSync(path.join(RootDir, "config.yml"), "utf8")
-);
+process.chdir(RootDir);
+
+const config = yaml.load(fs.readFileSync(ConfigPath, "utf8"));
 
 const loadPackage = (dir) =>
   JSON.parse(fs.readFileSync(path.resolve(dir, "package.json"), "utf8"));
 
-const ModsDir = path.resolve(RootDir, "mods");
+const ModsDir = "./mods";
 
 const isDependency = (pkg, [name, version]) =>
   pkg.includes(name) || version.includes(pkg);
@@ -35,11 +36,11 @@ const installPackages = () => {
   const newPackages = packages.filter(
     (pkg) =>
       !Object.entries(dependencies).some((dependency) =>
-        isDependency(pkg, dependency)
-      )
+        isDependency(pkg, dependency),
+      ),
   );
   const removedPackages = Object.entries(dependencies).filter(
-    (dependency) => !packages.some((pkg) => isDependency(pkg, dependency))
+    (dependency) => !packages.some((pkg) => isDependency(pkg, dependency)),
   );
 
   if (removedPackages.length === 0 && newPackages.length === 0) {
@@ -51,7 +52,7 @@ const installPackages = () => {
       .map((pkg) => {
         const entry =
           Object.entries(dependencies).find(
-            ([name, version]) => pkg.includes(name) || version.includes(pkg)
+            ([name, version]) => pkg.includes(name) || version.includes(pkg),
           ) || [];
         return entry[0];
       })
@@ -63,7 +64,7 @@ const installPackages = () => {
       {
         cwd: ModsDir,
         stdio: "inherit",
-      }
+      },
     );
   }
 
@@ -74,14 +75,14 @@ const installPackages = () => {
       {
         cwd: ModsDir,
         stdio: "inherit",
-      }
+      },
     );
   }
 
   const newPackage = loadPackage(ModsDir);
   fs.writeFileSync(
     path.resolve(ModsDir, "package.json"),
-    JSON.stringify(newPackage, null, 2)
+    JSON.stringify(newPackage, null, 2),
   );
 
   console.log("Done updating");
@@ -99,10 +100,10 @@ const writeModsConfiguration = () => {
     const { main } = loadPackage(pkgDir);
     if (!main) {
       console.warn(
-        `Missing 'main' key for ${pkg}, report this to the author of the package.`
+        `Missing 'main' key for ${pkg}, report this to the author of the package.`,
       );
     }
-    const mainPath = path.relative(RootDir, path.resolve(pkgDir, main));
+    const mainPath = path.resolve(pkgDir, main);
 
     if (mods.some((m) => m.includes(name) || version.includes(m))) {
       modsJSON.mods.push(mainPath);
@@ -110,7 +111,7 @@ const writeModsConfiguration = () => {
     }
 
     const bot = Object.entries(bots).find(
-      ([, dep]) => dep.includes(name) || version.includes(dep)
+      ([, dep]) => dep.includes(name) || version.includes(dep),
     );
     if (bot) {
       modsJSON.bots[bot[0]] = path.dirname(mainPath);
@@ -118,10 +119,7 @@ const writeModsConfiguration = () => {
     }
   }
 
-  fs.writeFileSync(
-    path.resolve(RootDir, "mods.json"),
-    JSON.stringify(modsJSON, null, 2)
-  );
+  fs.writeFileSync("mods.json", JSON.stringify(modsJSON, null, 2));
   console.log("Mods have been configured");
 };
 
@@ -135,7 +133,7 @@ const start = async () => {
       steam_api_key: process.env.STEAM_KEY || config.steamKey,
       storage_disable: false,
     },
-    process.stdout
+    process.stdout,
   );
 };
 
