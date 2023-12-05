@@ -8,6 +8,8 @@ on:
       - "Dockerfile"
       - "screeps-cli.js"
       - "screeps-start.js"
+      - "package.json"
+      - "package-lock.json"
     tags:
       - "v*.*.*"
     branches:
@@ -24,7 +26,7 @@ jobs:
         node: [10, 12]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
@@ -32,10 +34,7 @@ jobs:
           github-token: ${{ github.token }}
           flavor: |
             latest=auto
-            suffix=${{ format('{0}{1}',
-              matrix.node != 10 && format('-node{0}', matrix.node) || '',
-              inputs.variant && format('-{0}', inputs.variant) || ''
-            ) }},onlatest=true
+            suffix=${{ matrix.node != 10 && format('-node{0}', matrix.node) || '' }},onlatest=true
           images: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/screeps-server
           tags: |
@@ -44,20 +43,19 @@ jobs:
             type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
             type=sha
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
       - name: Build and push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           build-args: |
             NODE_VERSION=${{ matrix.node }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
