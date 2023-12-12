@@ -128,11 +128,20 @@ const start = async () => {
   writeModsConfiguration();
 
   const screeps = require("@screeps/launcher");
+  const options = {
+    steam_api_key: process.env.STEAM_KEY || config.steamKey,
+    storage_disable: false,
+  };
+
+  const keys = ['runner_threads', 'processors_cnt', 'log_console'];
+  for (const key of keys) {
+    if (options[key]) {
+      options[key] = config.serverConfig[key];
+    }
+  }
+
   await screeps.start(
-    {
-      steam_api_key: process.env.STEAM_KEY || config.steamKey,
-      storage_disable: false,
-    },
+    options,
     process.stdout,
   );
 };

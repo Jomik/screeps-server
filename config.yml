@@ -1,6 +1,15 @@
 mods:
   - screepsmod-auth
-  - screepsmod-admin-utils
   - screepsmod-mongo
 bots:
   simplebot: screepsbot-zeswarm
+
+serverConfig:
+  # The number of parallel runner threads in which player scripts are executed.
+  # Don't set this option greater than the number of your physical CPU cores.
+  runner_threads: 4
+  # The number of room processor worker processes to launch.
+  # Don't set this option greater than the number of your physical CPU cores.
+  processors_cnt: 2
+  # If set, forward console messages to terminal
+  log_console: false
