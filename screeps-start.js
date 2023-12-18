@@ -123,6 +123,16 @@ const writeModsConfiguration = () => {
   console.log("Mods have been configured");
 };
 
+// Map from camelCase to snake_case
+const ServerConfigMap = {
+  runnersThreads: "runner_threads",
+  processorsCnt: "processors_cnt",
+  storageTimeout: "storage_timeout",
+  logConsole: "log_console",
+  logRotateKeep: "log_rotate_keep",
+  restartInterval: "restart_interval",
+};
+
 const start = async () => {
   installPackages();
   writeModsConfiguration();
@@ -133,17 +143,13 @@ const start = async () => {
     storage_disable: false,
   };
 
-  const keys = ['runner_threads', 'processors_cnt', 'log_console'];
-  for (const key of keys) {
-    if (options[key]) {
-      options[key] = config.serverConfig[key];
+  for (const [configKey, optionsKey] of Object.entries(ServerConfigMap)) {
+    if (configKey in config.serverConfig) {
+      options[optionsKey] = config.serverConfig[key];
     }
   }
 
-  await screeps.start(
-    options,
-    process.stdout,
-  );
+  await screeps.start(options, process.stdout);
 };
 
 start().catch((err) => {
