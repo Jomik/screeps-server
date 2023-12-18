@@ -10,7 +10,7 @@ FROM node:${NODE_VERSION}-alpine as screeps
 # They are so old that there is no changes to their package registry anyway..
 # hadolint ignore=DL3018
 RUN --mount=type=cache,target=/etc/apk/cache \
-  apk add --no-cache python2 make gcc g++
+  apk add --no-cache bash python2 make gcc g++
 
 # Install screeps
 WORKDIR /screeps
