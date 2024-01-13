@@ -1,8 +1,4 @@
 ARG NODE_VERSION=10
-# TODO: Specify this in pipeline.
-# Setup pipelines to run on npm hook.
-# Requires proxy...
-ARG SCREEPS_VERSION=latest
 FROM node:${NODE_VERSION}-alpine as screeps
 
 # Install node-gyp dependencies
@@ -14,8 +10,9 @@ RUN --mount=type=cache,target=/etc/apk/cache \
 
 # Install screeps
 WORKDIR /screeps
+COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
-  npm install --save-exact "screeps@${SCREEPS_VERSION}" "js-yaml@4.1.0"
+  npm clean-install
 
 # Initialize screeps, similar to `screeps init`
 RUN cp -a /screeps/node_modules/@screeps/launcher/init_dist/.screepsrc ./ && \
