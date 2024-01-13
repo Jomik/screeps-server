@@ -7,7 +7,7 @@
   "author": "Jonas Holst Damtoft <jonasdamtoft@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "screeps": "4.2.15",
+    "screeps": "4.2.18",
     "js-yaml": "4.1.0"
   },
   "scripts": {
