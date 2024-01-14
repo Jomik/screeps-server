@@ -145,7 +145,7 @@ const start = async () => {
 
   for (const [configKey, optionsKey] of Object.entries(ServerConfigMap)) {
     if (configKey in config.serverOptions) {
-      options[optionsKey] = config.serverOptions[key];
+      options[optionsKey] = config.serverOptions[configKey];
     }
   }
 
