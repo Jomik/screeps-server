@@ -143,9 +143,11 @@ const start = async () => {
     storage_disable: false,
   };
 
+  const serverOptions = config.serverOptions || {};
+
   for (const [configKey, optionsKey] of Object.entries(ServerConfigMap)) {
-    if (configKey in config.serverOptions) {
-      options[optionsKey] = config.serverOptions[configKey];
+    if (configKey in serverOptions) {
+      options[optionsKey] = serverOptions[configKey];
     }
   }
 
