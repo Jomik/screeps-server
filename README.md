@@ -21,7 +21,7 @@ You can use [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
 ### Setup
 
-Download the [./docker-compose.yml](compose file), [./.env.sample](envfile) and [./config.yml](configuration) file to your computer. You can put this in your Screeps project.
+Download the [compose file](./docker-compose.yml), [envfile](./.env.sample) and [configuration](./config.yml) file to your computer. You can put this in your Screeps project.
 Copy `.env.sample` to `.env`, this can hold secrets for you, and should be ignored in git!
 
 You can use this command (in a shell) to do the above, in your current directory.
@@ -60,6 +60,11 @@ Simply add it to your `config.yml` and configure it appropriately according to t
 
 Ensure that your setup applies to any new prerequisites listed above.
 Run `docker compose pull` to download any new version of the image.
+
+### Stopping the server
+In your project run `docker compose stop`. This will stop the containers, but not remove them, so starting is quicker again.
+
+To __fully__ wipe the server and its data, run `docker compose down -v`. This removes containers, networks and volumes.
 
 ## Troubleshooting
 
