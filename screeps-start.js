@@ -126,7 +126,7 @@ const writeModsConfiguration = () => {
 
 // Map from camelCase to snake_case
 const ServerConfigMap = {
-  runnerCount: "runners_threads",
+  runnerCount: "runners_cnt",
   processorCount: "processors_cnt",
   storageTimeout: "storage_timeout",
   logConsole: "log_console",
