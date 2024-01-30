@@ -6,11 +6,5 @@ bots:
   simplebot: screepsbot-zeswarm
 
 serverOptions:
-  # The number of parallel runner threads in which player scripts are executed.
-  # Don't set this option greater than the number of your physical CPU cores.
-  runnerThreads: 4
-  # The number of room processor worker processes to launch.
-  # Don't set this option greater than the number of your physical CPU cores.
-  processorsCnt: 2
   # If set, forward console messages to terminal
   logConsole: false

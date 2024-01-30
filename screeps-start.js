@@ -1,5 +1,6 @@
 #! /usr/bin/env node
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const yaml = require("js-yaml");
 const { execSync } = require("child_process");
@@ -64,6 +65,7 @@ const installPackages = () => {
       {
         cwd: ModsDir,
         stdio: "inherit",
+        encoding: "utf8",
       },
     );
   }
@@ -75,6 +77,7 @@ const installPackages = () => {
       {
         cwd: ModsDir,
         stdio: "inherit",
+        encoding: "utf8",
       },
     );
   }
@@ -125,12 +128,23 @@ const writeModsConfiguration = () => {
 
 // Map from camelCase to snake_case
 const ServerConfigMap = {
-  runnersThreads: "runner_threads",
-  processorsCnt: "processors_cnt",
+  runnerCount: "runners_cnt",
+  processorCount: "processors_cnt",
   storageTimeout: "storage_timeout",
   logConsole: "log_console",
   logRotateKeep: "log_rotate_keep",
   restartInterval: "restart_interval",
+};
+
+const getPhysicalCores = () => {
+  const nproc = execSync("nproc --all", { encoding: "utf8" });
+
+  const cores = Number.parseInt(nproc.trim(), 10);
+  if (Number.isNaN(cores) && cores < 1) {
+    console.warn("Error getting number of physical cores, defaulting to 1");
+    return 1;
+  }
+  return cores;
 };
 
 const start = async () => {
@@ -138,9 +152,13 @@ const start = async () => {
   writeModsConfiguration();
 
   const screeps = require("@screeps/launcher");
+  const cores = getPhysicalCores();
+
   const options = {
     steam_api_key: process.env.STEAM_KEY || config.steamKey,
     storage_disable: false,
+    processors_cnt: cores,
+    runners_cnt: Math.max(cores - 1, 1),
   };
 
   const serverOptions = config.serverOptions || {};
