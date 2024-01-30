@@ -1,5 +1,6 @@
 #! /usr/bin/env node
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const yaml = require("js-yaml");
 const { execSync } = require("child_process");
@@ -125,8 +126,8 @@ const writeModsConfiguration = () => {
 
 // Map from camelCase to snake_case
 const ServerConfigMap = {
-  runnersThreads: "runner_threads",
-  processorsCnt: "processors_cnt",
+  runnerCount: "runners_threads",
+  processorCount: "processors_cnt",
   storageTimeout: "storage_timeout",
   logConsole: "log_console",
   logRotateKeep: "log_rotate_keep",
@@ -138,9 +139,12 @@ const start = async () => {
   writeModsConfiguration();
 
   const screeps = require("@screeps/launcher");
+  const cores = os.cpus().length;
   const options = {
     steam_api_key: process.env.STEAM_KEY || config.steamKey,
     storage_disable: false,
+    processors_cnt: cores,
+    runners_cnt: Math.max(cores - 1, 1),
   };
 
   const serverOptions = config.serverOptions || {};
@@ -151,6 +155,10 @@ const start = async () => {
     }
   }
 
+  console.log(
+    "Starting server with options:",
+    JSON.stringify(options, null, 2),
+  );
   await screeps.start(options, process.stdout);
 };
 
