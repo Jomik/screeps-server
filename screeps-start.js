@@ -65,6 +65,7 @@ const installPackages = () => {
       {
         cwd: ModsDir,
         stdio: "inherit",
+        encoding: "utf8",
       },
     );
   }
@@ -76,6 +77,7 @@ const installPackages = () => {
       {
         cwd: ModsDir,
         stdio: "inherit",
+        encoding: "utf8",
       },
     );
   }
@@ -134,12 +136,24 @@ const ServerConfigMap = {
   restartInterval: "restart_interval",
 };
 
+const getPhysicalCores = () => {
+  const nproc = execSync("nproc --all", { encoding: "utf8" });
+
+  const cores = Number.parseInt(nproc.trim(), 10);
+  if (Number.isNaN(cores) && cores < 1) {
+    console.warn("Error getting number of physical cores, defaulting to 1");
+    return 1;
+  }
+  return cores;
+};
+
 const start = async () => {
   installPackages();
   writeModsConfiguration();
 
   const screeps = require("@screeps/launcher");
-  const cores = os.cpus().length;
+  const cores = getPhysicalCores();
+
   const options = {
     steam_api_key: process.env.STEAM_KEY || config.steamKey,
     storage_disable: false,
@@ -155,10 +169,6 @@ const start = async () => {
     }
   }
 
-  console.log(
-    "Starting server with options:",
-    JSON.stringify(options, null, 2),
-  );
   await screeps.start(options, process.stdout);
 };
 
