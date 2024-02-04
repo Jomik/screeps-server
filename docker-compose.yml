@@ -10,6 +10,7 @@ services:
       - 21025:21025/tcp
     volumes:
       - ./config.yml:/screeps/config.yml
+      - screeps-data:/data
     environment:
       MONGO_HOST: mongo
       REDIS_HOST: redis
@@ -29,5 +30,6 @@ services:
     restart: unless-stopped
 
 volumes:
+  screeps-data:
   redis-data:
   mongo-data:
