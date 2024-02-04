@@ -1,6 +1,5 @@
 #! /usr/bin/env node
 const fs = require("fs");
-const os = require("os");
 const path = require("path");
 const yaml = require("js-yaml");
 const { execSync } = require("child_process");
@@ -128,7 +127,9 @@ const writeModsConfiguration = () => {
 
 // Map from camelCase to snake_case
 const ServerConfigMap = {
-  runnerCount: "runners_cnt",
+  // NOTE: We assume this is outdated and we want one multi thread runner.
+  // runnerCount: "runners_cnt",
+  runnerThreads: "runner_threads",
   processorCount: "processors_cnt",
   storageTimeout: "storage_timeout",
   logConsole: "log_console",
@@ -158,7 +159,8 @@ const start = async () => {
     steam_api_key: process.env.STEAM_KEY || config.steamKey,
     storage_disable: false,
     processors_cnt: cores,
-    runners_cnt: Math.max(cores - 1, 1),
+    runners_cnt: 1,
+    runner_threads: Math.max(cores - 1, 1),
   };
 
   const serverOptions = config.serverOptions || {};
