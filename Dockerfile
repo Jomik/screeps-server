@@ -37,7 +37,9 @@ RUN npm init -y
 # Move the database file to shared directory
 WORKDIR /data
 RUN mv /screeps/db.json /data/db.json && \
-  sed -i "s/db.json/\/data\/db.json/" /screeps/.screepsrc
+  sed -i "s/db = db.json/db = \/data\/db.json/" /screeps/.screepsrc
+RUN mv /screeps/assets /data/assets && \
+  sed -i "s/assetdir = assets/assetdir = \/data\/assets/" /screeps/.screepsrc
 
 WORKDIR /screeps
 COPY screeps-cli.js ./bin/cli
