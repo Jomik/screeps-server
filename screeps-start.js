@@ -126,7 +126,7 @@ const writeModsConfiguration = () => {
 };
 
 // Map from camelCase to snake_case
-const ServerConfigMap = {
+const LauncherConfigMap = {
   // NOTE: We assume this is outdated and we want one multi thread runner.
   // runnerCount: "runners_cnt",
   runnerThreads: "runner_threads",
@@ -163,11 +163,11 @@ const start = async () => {
     runner_threads: Math.max(cores - 1, 1),
   };
 
-  const serverOptions = config.serverOptions || {};
+  const launcherOptions = config.launcherOptions || {};
 
-  for (const [configKey, optionsKey] of Object.entries(ServerConfigMap)) {
-    if (configKey in serverOptions) {
-      options[optionsKey] = serverOptions[configKey];
+  for (const [configKey, optionsKey] of Object.entries(LauncherConfigMap)) {
+    if (configKey in launcherOptions) {
+      options[optionsKey] = launcherOptions[configKey];
     }
   }
 
