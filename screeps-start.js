@@ -8,7 +8,12 @@ const RootDir = process.env["SERVER_DIR"];
 if (!RootDir) {
   throw new Error("Missing environment variable $SERVER_DIR");
 }
-const ConfigPath = process.env["CONFIG_FILE"] || "./config.yml";
+const DataDir = process.env["DATA_DIR"];
+if (!DataDir) {
+  throw new Error("Missing environment variable $DATA_DIR");
+}
+const ConfigPath =
+  process.env["CONFIG_FILE"] || path.join(RootDir, "config.yml");
 
 process.chdir(RootDir);
 
@@ -17,7 +22,7 @@ const config = yaml.load(fs.readFileSync(ConfigPath, "utf8"));
 const loadPackage = (dir) =>
   JSON.parse(fs.readFileSync(path.resolve(dir, "package.json"), "utf8"));
 
-const ModsDir = "./mods";
+const ModsDir = path.join(DataDir, "mods");
 
 const isDependency = (pkg, [name, version]) =>
   pkg.includes(name) || version.includes(pkg);
@@ -30,9 +35,9 @@ const installPackages = () => {
   const modsPackage = loadPackage(ModsDir);
   const dependencies = modsPackage.dependencies || {};
 
-  // Calculate package diff
   const packages = [...mods, ...Object.values(bots)];
 
+  // Calculate package diff
   const newPackages = packages.filter(
     (pkg) =>
       !Object.entries(dependencies).some((dependency) =>
@@ -80,12 +85,6 @@ const installPackages = () => {
       },
     );
   }
-
-  const newPackage = loadPackage(ModsDir);
-  fs.writeFileSync(
-    path.resolve(ModsDir, "package.json"),
-    JSON.stringify(newPackage, null, 2),
-  );
 
   console.log("Done updating");
 };

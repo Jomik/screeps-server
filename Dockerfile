@@ -44,7 +44,7 @@ RUN mv /screeps/assets /data/assets && \
 WORKDIR /screeps
 COPY screeps-cli.js ./bin/cli
 COPY screeps-start.js ./bin/start
-ENV SERVER_DIR=/screeps NODE_ENV=production PATH="/screeps/bin:${PATH}"
+ENV SERVER_DIR=/screeps DATA_DIR=/data NODE_ENV=production PATH="/screeps/bin:${PATH}"
 
 VOLUME [ "/data" ]
 EXPOSE 21025
