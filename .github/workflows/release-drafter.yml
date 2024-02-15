@@ -21,6 +21,6 @@ jobs:
     steps:
       - uses: release-drafter/release-drafter@3f0f87098bd6b5c5b9a36d49c41d998ea58f9348 # v6
         with:
-          publish: ${{ github.event_name != 'pull_request' }}
+          publish: ${{ github.event_name == 'push' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
