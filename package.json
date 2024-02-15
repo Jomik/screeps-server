@@ -8,7 +8,7 @@
   "license": "MIT",
   "engines": {
     "npm": "~6",
-    "node": "10 - 12"
+    "node": "10 - 20"
   },
   "dependencies": {
     "screeps": "4.2.19",
