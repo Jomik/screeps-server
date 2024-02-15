@@ -2,7 +2,7 @@ version: "3"
 services:
   screeps:
     platform: linux/x86_64
-    image: jomik/screeps-server:edge
+    image: ghcr.io/jomik/screeps-server:edge
     depends_on:
       - mongo
       - redis
