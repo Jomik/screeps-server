@@ -8,13 +8,17 @@
   },
   "packageRules": [
     {
+      "description": [
+        "Automcatically update to latest minor or patch versions"
+      ],
       "matchUpdateTypes": ["minor", "patch"],
       "matchCurrentVersion": "!/^0/",
       "automerge": true
     },
     {
-      "matchPackagePatterns": ["node"],
-      "matchManagers": ["dockerfile"],
+      "description": ["Ignore nodejs"],
+      "matchPackageNames": ["node"],
+      "matchManagers": ["dockerfile", "npm"],
       "enabled": false
     }
   ]
