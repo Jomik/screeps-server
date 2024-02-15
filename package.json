@@ -7,7 +7,7 @@
   "author": "Jonas Holst Damtoft <jonasdamtoft@gmail.com>",
   "license": "MIT",
   "engines": {
-    "npm": "~6",
+    "npm": "~10.4.0",
     "node": "10 - 12"
   },
   "dependencies": {
