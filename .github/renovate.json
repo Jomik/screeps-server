@@ -8,6 +8,9 @@
   },
   "packageRules": [
     {
+      "description": [
+        "Automcatically update to latest minor or patch versions"
+      ],
       "matchUpdateTypes": ["minor", "patch"],
       "matchCurrentVersion": "!/^0/",
       "automerge": true
