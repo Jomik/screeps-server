@@ -1,5 +1,3 @@
-![Docker Pulls](https://img.shields.io/docker/pulls/jomik/screeps-server?link=https%3A%2F%2Fhub.docker.com%2Fr%2Fjomik%2Fscreeps-server)
-
 This is an alternative to [screepers/screeps-launcher](https://github.com/screepers/screeps-launcher)
 
 ## Why?
@@ -13,4 +11,5 @@ Mods and bots are managed at startup by checking your `config.yml`.
 `npm` is only invoked if changes are made to your `config.yml`.
 
 ## Getting started, configuration, updating and troubleshooting
+
 Please check the [wiki](https://github.com/Jomik/screeps-server/wiki)! I will try to keep that one up to date.
