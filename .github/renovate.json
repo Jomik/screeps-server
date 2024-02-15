@@ -13,8 +13,9 @@
       "automerge": true
     },
     {
-      "matchPackagePatterns": ["node"],
-      "matchManagers": ["dockerfile"],
+      "description": ["Ignore nodejs"],
+      "matchPackageNames": ["node"],
+      "matchManagers": ["dockerfile", "npm"],
       "enabled": false
     }
   ]
