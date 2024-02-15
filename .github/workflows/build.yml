@@ -1,0 +1,28 @@
+name: Build docker image
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [10, 12]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          build-args: |
+            NODE_VERSION=${{ matrix.node }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
