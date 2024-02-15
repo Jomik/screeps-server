@@ -11,6 +11,11 @@
       "matchUpdateTypes": ["minor", "patch"],
       "matchCurrentVersion": "!/^0/",
       "automerge": true
+    },
+    {
+      "matchPackagePatterns": ["node"],
+      "matchManagers": ["npm"],
+      "enabled": false
     }
   ]
 }
