@@ -14,7 +14,7 @@
     },
     {
       "matchPackagePatterns": ["node"],
-      "matchManagers": ["npm"],
+      "matchManagers": ["dockerfile"],
       "enabled": false
     }
   ]
