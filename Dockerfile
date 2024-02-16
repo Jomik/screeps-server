@@ -49,7 +49,7 @@ ENV SERVER_DIR=/screeps NODE_ENV=production PATH="/screeps/bin:${PATH}"
 VOLUME [ "/data" ]
 EXPOSE 21025
 
-HEALTHCHECK --start-period=5m --interval=5m --timeout=3s \
+HEALTHCHECK --start-period=10s --interval=30s --timeout=3s \
   CMD wget --no-verbose --tries=1 --spider http://localhost:21025/api/version || exit 1
 
 ENTRYPOINT ["start"]
