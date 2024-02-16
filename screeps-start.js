@@ -8,10 +8,9 @@ const RootDir = process.env["SERVER_DIR"];
 if (!RootDir) {
   throw new Error("Missing environment variable $SERVER_DIR");
 }
-const ConfigPath = process.env["CONFIG_FILE"] || "./config.yml";
-
 process.chdir(RootDir);
 
+const ConfigPath = path.join(RootDir, "config.yml");
 const config = yaml.load(fs.readFileSync(ConfigPath, "utf8"));
 
 const loadPackage = (dir) =>
