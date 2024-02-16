@@ -30,10 +30,6 @@ RUN --mount=type=cache,target=/var/cache/apk \
 USER node
 COPY --from=screeps --chown=node:node /screeps /screeps/
 
-# Init mods package
-WORKDIR /screeps/mods
-RUN npm init -y
-
 # Move the database file to shared directory
 WORKDIR /data
 RUN mv /screeps/db.json /data/db.json && \
@@ -42,8 +38,13 @@ RUN mv /screeps/assets /data/assets && \
   sed -i "s/assetdir = assets/assetdir = \/data\/assets/" /screeps/.screepsrc
 
 WORKDIR /screeps
+
+# Init mods package
+RUN mkdir ./mods && echo "{}" > ./mods/package.json
+
 COPY screeps-cli.js ./bin/cli
 COPY screeps-start.js ./bin/start
+
 ENV SERVER_DIR=/screeps NODE_ENV=production PATH="/screeps/bin:${PATH}"
 
 VOLUME [ "/data" ]

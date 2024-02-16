@@ -8,15 +8,15 @@ const RootDir = process.env["SERVER_DIR"];
 if (!RootDir) {
   throw new Error("Missing environment variable $SERVER_DIR");
 }
+const ModsDir = path.join(RootDir, "mods");
+const ConfigPath = path.join(RootDir, "config.yml");
+
 process.chdir(RootDir);
 
-const ConfigPath = path.join(RootDir, "config.yml");
 const config = yaml.load(fs.readFileSync(ConfigPath, "utf8"));
 
 const loadPackage = (dir) =>
   JSON.parse(fs.readFileSync(path.resolve(dir, "package.json"), "utf8"));
-
-const ModsDir = "./mods";
 
 const isDependency = (pkg, [name, version]) =>
   pkg.includes(name) || version.includes(pkg);
@@ -79,12 +79,6 @@ const installPackages = () => {
       },
     );
   }
-
-  const newPackage = loadPackage(ModsDir);
-  fs.writeFileSync(
-    path.resolve(ModsDir, "package.json"),
-    JSON.stringify(newPackage, null, 2),
-  );
 
   console.log("Done updating");
 };
