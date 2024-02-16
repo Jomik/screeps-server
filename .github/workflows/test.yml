@@ -11,7 +11,7 @@ env:
   TEST_TAG: jomik/screeps-server:test
 
 jobs:
-  release:
+  test-image:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
