@@ -36,13 +36,18 @@ jobs:
         run: |
           set -eu
           docker run --rm -dPi --env STEAM_KEY --name screeps -v ${CONFIG_FILE}:/screeps/config.yml ${TEST_TAG}
+          timeout 10m bash -c '\
           until docker container inspect --format "{{json .State.Health.Status }}" screeps | \
             grep -m 1 "healthy"; \
             do sleep 1; \
-          done
+          done'
+          docker container logs screeps
         env:
           STEAM_KEY: ${{ secrets.STEAM_KEY }}
           CONFIG_FILE: ${{ format('{0}/{1}', github.workspace, 'test-config.yml') }}
       - name: Test
         run: |
           docker ps
+      - name: Stop container
+        if: always()
+        run: docker container stop screeps
