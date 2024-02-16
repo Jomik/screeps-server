@@ -39,7 +39,7 @@ jobs:
           STEAM_KEY: ${{ secrets.STEAM_KEY }}
           CONFIG_FILE: ${{ format('{0}/{1}', github.workspace, 'test-config.yml') }}
       - name: Wait for container to be healthy
-        uses: stringbean/docker-healthcheck-action@v3
+        uses: stringbean/docker-healthcheck-action@a958d329225ccbd485766815734e01c335e62bd4 # v3
         with:
           container: screeps
           wait-time: 600
