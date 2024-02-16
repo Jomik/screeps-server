@@ -1,4 +1,4 @@
-This is an alternative to [screepers/screeps-launcher](https://github.com/screepers/screeps-launcher)
+This is an alternative to [screepers/screeps-launcher].
 
 ## Why?
 
@@ -13,3 +13,5 @@ Mods and bots are managed at startup by checking your `config.yml`.
 ## Getting started, configuration, updating and troubleshooting
 
 Please check the [wiki](https://github.com/Jomik/screeps-server/wiki)! I will try to keep that one up to date.
+
+[screepers/screeps-launcher]: https://github.com/screepers/screeps-launcher
