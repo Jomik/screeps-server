@@ -34,20 +34,32 @@ jobs:
           load: true
       - name: Start the container
         run: |
-          set -eu
-          docker run --rm -dPi --env STEAM_KEY --name screeps -v ${CONFIG_FILE}:/screeps/config.yml ${TEST_TAG}
-          timeout 10m bash -c '\
-          until docker container inspect --format "{{json .State.Health.Status }}" screeps | \
-            grep -m 1 "healthy"; \
-            do sleep 1; \
-          done'
-          docker container logs screeps
+          docker run --rm -di -p 21025:21025 -p 21028:21028 --env STEAM_KEY --name screeps -v ${CONFIG_FILE}:/screeps/config.yml ${TEST_TAG}
         env:
           STEAM_KEY: ${{ secrets.STEAM_KEY }}
           CONFIG_FILE: ${{ format('{0}/{1}', github.workspace, 'test-config.yml') }}
-      - name: Test
+      - name: Wait for container to be healthy
+        uses: stringbean/docker-healthcheck-action@v1
+        with:
+          container: screeps
+          wait-time: 600
+          require-status: running
+          require-healthy: true
+      - name: Show container logs
+        if: always()
+        run: docker container logs screeps
+      - name: Check that mods are registered
         run: |
-          docker ps
+          set -eu
+          server_data=$(curl http://localhost:21025/api/version | jq -c '.serverData')
+          echo $server_data | jq -e '.features | any(.name == "screepsmod-auth")'
+          echo $server_data | jq -e '.features | any(.name == "screepsmod-admin-utils")'
+          echo $server_data | jq -e '.features | any(.name == "screepsmod-cli")'
+      - name: Check that bots are registered
+        run: |
+          set -eu
+          bots=$(curl -X POST http://localhost:21028/cli -d "help(bots)" | grep -A 10 "Bot AIs:")
+          echo $bots | grep 'simplebot' | grep "screepsbot-zeswarm"
       - name: Stop container
         if: always()
         run: docker container stop screeps

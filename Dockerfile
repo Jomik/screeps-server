@@ -50,6 +50,6 @@ VOLUME [ "/data" ]
 EXPOSE 21025
 
 HEALTHCHECK --start-period=5m --interval=5m --timeout=3s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:21025/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:21025/api/version || exit 1
 
 ENTRYPOINT ["start"]
