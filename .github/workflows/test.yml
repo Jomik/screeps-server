@@ -34,7 +34,7 @@ jobs:
           load: true
       - name: Start the container
         run: |
-          docker run --rm -di -p 21025:21025 -p 21028:21028 --env STEAM_KEY --name screeps -v ${CONFIG_FILE}:/screeps/config.yml ${TEST_TAG}
+          docker run --rm -d -p 21025:21025 -p 21028:21028 --env STEAM_KEY --name screeps -v ${CONFIG_FILE}:/screeps/config.yml ${TEST_TAG}
         env:
           STEAM_KEY: ${{ secrets.STEAM_KEY }}
           CONFIG_FILE: ${{ format('{0}/{1}', github.workspace, 'test-config.yml') }}
