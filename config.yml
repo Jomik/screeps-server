@@ -5,6 +5,6 @@ mods:
 bots:
   simplebot: screepsbot-zeswarm
 
-serverOptions:
+launcherOptions:
   # If set, forward console messages to terminal
   logConsole: false
