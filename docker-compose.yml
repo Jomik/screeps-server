@@ -32,5 +32,6 @@ services:
 
 volumes:
   screeps-data:
+  screeps-mods:
   redis-data:
   mongo-data:
