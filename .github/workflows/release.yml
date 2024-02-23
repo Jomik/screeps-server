@@ -10,6 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Publish Latest Release
-        uses: ivangabriele/publish-latest-release@v3
+        uses: ivangabriele/publish-latest-release@df1a4afd8aea9d1f0ba5ebeb89452aeac7bca0a9 # v3
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
