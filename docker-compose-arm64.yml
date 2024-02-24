@@ -21,13 +21,13 @@ services:
       dockerfile: Dockerfile-arm64
 
   mongo:
-    image: arm64v8/mongo:4.4.18
+    image: mongo:4.4.18
     volumes:
       - mongo-data:/data/db
     restart: unless-stopped
 
   redis:
-    image: arm64v8/redis:7
+    image: redis:7
     volumes:
       - redis-data:/data
     restart: unless-stopped

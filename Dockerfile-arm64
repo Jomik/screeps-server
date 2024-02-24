@@ -1,5 +1,5 @@
 ARG NODE_VERSION=10
-FROM arm64v8/node:${NODE_VERSION}-alpine as screeps
+FROM node:${NODE_VERSION}-alpine as screeps
 
 # Install node-gyp dependencies
 # We do not pin as we use multiple node versions.
@@ -22,7 +22,7 @@ RUN cp -a /screeps/node_modules/@screeps/launcher/init_dist/.screepsrc ./ && \
 # Gotta remove this Windows carriage return shenanigans
 RUN sed -i "s/\r//" .screepsrc
 
-FROM arm64v8/node:${NODE_VERSION}-alpine as server
+FROM node:${NODE_VERSION}-alpine as server
 # hadolint ignore=DL3018
 RUN --mount=type=cache,target=/var/cache/apk \
   apk add --no-cache git
