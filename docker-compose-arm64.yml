@@ -17,8 +17,7 @@ services:
       REDIS_HOST: redis
       STEAM_KEY: ${STEAM_KEY:?"Missing steam key"}
     restart: unless-stopped
-    build:
-      dockerfile: Dockerfile-arm64
+    build: .
 
   mongo:
     image: mongo:4.4.18
