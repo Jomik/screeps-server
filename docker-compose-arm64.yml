@@ -1,7 +1,6 @@
 version: "3"
 services:
   screeps:
-    platform: linux/arm64
     image: ghcr.io/jomik/screeps-server:edge
     depends_on:
       - mongo
