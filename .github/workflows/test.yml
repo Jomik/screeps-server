@@ -31,6 +31,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ${{ env.TEST_TAG }}
+          platforms: linux/amd64,linux/arm64
           load: true
       - name: Start the container
         run: |
