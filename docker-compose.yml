@@ -1,7 +1,6 @@
 version: "3"
 services:
   screeps:
-    platform: linux/x86_64
     image: ghcr.io/jomik/screeps-server:edge
     depends_on:
       - mongo
@@ -17,15 +16,16 @@ services:
       REDIS_HOST: redis
       STEAM_KEY: ${STEAM_KEY:?"Missing steam key"}
     restart: unless-stopped
+    build: .
 
   mongo:
-    image: mongo
+    image: mongo:4.4.18
     volumes:
       - mongo-data:/data/db
     restart: unless-stopped
 
   redis:
-    image: redis
+    image: redis:7
     volumes:
       - redis-data:/data
     restart: unless-stopped
