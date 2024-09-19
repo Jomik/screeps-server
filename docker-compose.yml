@@ -19,7 +19,7 @@ services:
     build: .
 
   mongo:
-    image: mongo:4.4.18
+    image: mongo:8.0.0
     volumes:
       - mongo-data:/data/db
     restart: unless-stopped
