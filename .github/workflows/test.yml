@@ -24,10 +24,11 @@ jobs:
         with:
           result-encoding: string
           script: |
-            github.rest.pulls.get({
+            const { data } = await github.rest.pulls.get({
               ...context.repo,
               pull_number: context.payload.pull_request.number,
-            }).then(({data}) => data.merge_commit_sha);
+            });
+            return data.merge_commit_sha;
       - name: Checkout merge commit
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         with:
