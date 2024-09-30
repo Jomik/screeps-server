@@ -6,5 +6,7 @@ bots:
   simplebot: screepsbot-zeswarm
 
 launcherOptions:
+  # If set, automatically ensures all mods are updated
+  autoUpdate: false
   # If set, forward console messages to terminal
   logConsole: false

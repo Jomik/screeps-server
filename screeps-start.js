@@ -21,6 +21,16 @@ const loadPackage = (dir) =>
 const isDependency = (pkg, [name, version]) =>
   pkg.includes(name) || version.includes(pkg);
 
+const parseVersionSpec = (spec) => {
+  const atIdx = spec.lastIndexOf("@");
+  if (atIdx === -1) {
+    return [spec, "latest"];
+  }
+  const name = spec.substring(0, atIdx);
+  const version = spec.substring(atIdx + 1);
+  return [name, version];
+}
+
 const installPackages = () => {
   console.log("Updating dependencies");
   const mods = config.mods || [];
@@ -81,6 +91,74 @@ const installPackages = () => {
   }
 
   console.log("Done updating");
+}
+
+const updatePackages = (doUpdate) => {
+  const mods = config.mods || [];
+  const bots = config.bots || {};
+
+  const modsPackage = loadPackage(ModsDir);
+  const dependencies = modsPackage.dependencies || {};
+
+  // Calculate package diff
+  const configuredPackages = [...mods, ...Object.values(bots)];
+
+  const packagedMods = configuredPackages.filter(
+    (pkg) =>
+      Object.entries(dependencies).some((dependency) =>
+        isDependency(pkg, dependency),
+      ),
+  ).map((pkg) => parseVersionSpec(pkg));
+
+  let outdated = {};
+  const outdatedFile = path.resolve(ModsDir, "outdated.json");
+  try {
+    // `npm outdated --json` returns 1 if there are outdated packages,
+    // which causes `execSync` to throw an error.
+    execSync("npm outdated --json > outdated.json || true", {
+      cwd: ModsDir,
+      stdio: "inherit",
+      encoding: "utf8",
+      shell: true,
+    })
+    const output = fs.readFileSync(outdatedFile)
+    outdated = JSON.parse(output);
+  } catch {
+  } finally {
+    try {
+      fs.unlinkSync(outdatedFile);
+    } catch {
+    }
+  }
+
+  const versionSpecs = [];
+  for (const [mod, info] of Object.entries(outdated)) {
+    const [name, version] = packagedMods.find(([pkg]) => mod === pkg) || [];
+    if (!name) continue;
+    if (version !== "latest") {
+      console.log(`package ${name} is pinned to version ${version}, ignoring`);
+      continue;
+    }
+    versionSpecs.push(`${mod}@${info.latest}`);
+  }
+
+  if (versionSpecs.length === 0) {
+    console.log(`All mods are up to date!`);
+    return false;
+  }
+
+  if (!doUpdate) {
+    console.log(`There are outdated mods needing an update:`, ...versionSpecs);
+    return true;
+  }
+
+  console.log(`Updating outdated mods`, ...versionSpecs);
+  execSync(`npm install --loglevel=error --no-progress -E ${versionSpecs.join(" ")}`, {
+    cwd: ModsDir,
+    stdio: "inherit",
+    encoding: "utf8",
+  });
+  return false;
 };
 
 const writeModsConfiguration = () => {
@@ -95,7 +173,7 @@ const writeModsConfiguration = () => {
     const { main } = loadPackage(pkgDir);
     if (!main) {
       console.warn(
-        `Missing 'main' key for ${pkg}, report this to the author of the package.`,
+        `Missing 'main' key for ${name}, report this to the author of the package.`,
       );
     }
     const mainPath = path.resolve(pkgDir, main);
@@ -144,6 +222,13 @@ const getPhysicalCores = () => {
 const start = async () => {
   installPackages();
   writeModsConfiguration();
+
+  const updateOpt = process.argv.includes("--update");
+  const updateNeeded = updatePackages(updateOpt || config.autoUpdate);
+
+  if (updateOpt) {
+    process.exit(updateNeeded ? 1 : 0);
+  }
 
   const screeps = require("@screeps/launcher");
   const cores = getPhysicalCores();

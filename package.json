@@ -15,6 +15,7 @@
     "js-yaml": "4.1.0"
   },
   "scripts": {
-    "cli": "docker compose exec screeps cli"
+    "cli": "docker compose exec screeps cli",
+    "update": "docker compose exec screeps start --update"
   }
 }
