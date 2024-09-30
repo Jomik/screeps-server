@@ -42,7 +42,7 @@ jobs:
         uses: stringbean/docker-healthcheck-action@a958d329225ccbd485766815734e01c335e62bd4 # v3
         with:
           container: screeps
-          wait-time: 600
+          wait-time: 60
           require-status: running
           require-healthy: true
       - name: Show container logs
