@@ -11,8 +11,27 @@ env:
   TEST_TAG: jomik/screeps-server:test
 
 jobs:
+  verify-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - name: Check for STEAM_KEY
+        env:
+          steam_key: ${{ secrets.STEAM_KEY }}
+        if: ${{ env.steam_key == '' }}
+        run: 'echo "echo The secret \"STEAM_KEY\" has not been set; echo please go to \"settings \> secrets \> actions\" to create it";exit 1'
+      - name: Add comment to PR
+        uses: thollander/actions-comment-pull-request@v2
+        if: ${{ failure() }}
+        with:
+          message: |
+            The secret `STEAM_KEY` has not been set in your fork.
+            Please to "settings > secrets > actions" to create it.
+
   test-image:
     runs-on: ubuntu-latest
+    needs: [verify-pipeline]
     strategy:
       fail-fast: false
       matrix:
