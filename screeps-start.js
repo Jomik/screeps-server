@@ -21,6 +21,8 @@ const loadPackage = (dir) =>
 const isDependency = (pkg, [name, version]) =>
   pkg.includes(name) || version.includes(pkg);
 
+const VERSION = /^(=|^|~|<|>|<=|>=)?\d+(?:\.\d+(?:\.\d+(?:.*)?)?)?$/
+
 const parseVersionSpec = (spec) => {
   const atIdx = spec.lastIndexOf("@");
   if (atIdx === -1) {
@@ -28,6 +30,9 @@ const parseVersionSpec = (spec) => {
   }
   const name = spec.substring(0, atIdx);
   const version = spec.substring(atIdx + 1);
+  if (!version.match(VERSION)) {
+    return [spec, "latest"];
+  }
   return [name, version];
 }
 
