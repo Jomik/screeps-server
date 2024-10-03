@@ -9,6 +9,6 @@ Run `docker compose pull screeps` to download any new version of the image.
 You can run `docker compose pull` without the `screeps` specifier to pull all new images for the compose file.
 
 ### Update mods and bots
-Those that have specific versions set in `config.yml` can be updated by changing that.
-To update mods/bots that was installed without a version requirement (defaults to @latest at time of first startup) will have to be updated from within the container.
-See [Issue #23](https://github.com/Jomik/screeps-server/issues/23)
+Mods and bots can be updated by running `docker compose exec screeps start --update` and restarting the server. This will go over the
+installed packages and update any that are not pinned to their latest available version. You can pin a package
+to specific version in the config.yml, like so: `mod@1.2.3`.
