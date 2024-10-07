@@ -13,16 +13,40 @@ const ConfigPath = path.join(RootDir, "config.yml");
 
 process.chdir(RootDir);
 
-const config = yaml.load(fs.readFileSync(ConfigPath, "utf8"));
+/**
+ * @typedef Config
+ * @property {string} steamKey
+ * @property {string[]} mods
+ * @property {Record<string, string>} bots
+ * @property {Record<string, any>} launcherOptions
+ * @property {boolean} autoUpdate
+ */
 
+const config = /** @type {Config} */ (yaml.load(fs.readFileSync(ConfigPath, "utf8")));
+
+/**
+ * @param {string} dir
+ * @returns {any}
+ */
 const loadPackage = (dir) =>
   JSON.parse(fs.readFileSync(path.resolve(dir, "package.json"), "utf8"));
 
+/**
+ *
+ * @param {string} pkg
+ * @param {[string, string]} param
+ * @returns {boolean}
+ */
 const isDependency = (pkg, [name, version]) =>
   pkg.includes(name) || version.includes(pkg);
 
 const VERSION = /^(=|^|~|<|>|<=|>=)?\d+(?:\.\d+(?:\.\d+(?:.*)?)?)?$/
 
+/**
+ * 
+ * @param {string} spec 
+ * @returns 
+ */
 const parseVersionSpec = (spec) => {
   const atIdx = spec.lastIndexOf("@");
   if (atIdx === -1) {
@@ -98,6 +122,11 @@ const installPackages = () => {
   console.log("Done updating");
 }
 
+/**
+ * 
+ * @param {boolean} doUpdate 
+ * @returns 
+ */
 const updatePackages = (doUpdate) => {
   const mods = config.mods || [];
   const bots = config.bots || {};
@@ -124,9 +153,8 @@ const updatePackages = (doUpdate) => {
       cwd: ModsDir,
       stdio: "inherit",
       encoding: "utf8",
-      shell: true,
     })
-    const output = fs.readFileSync(outdatedFile)
+    const output = fs.readFileSync(outdatedFile).toString()
     outdated = JSON.parse(output);
   } catch {
   } finally {
@@ -171,6 +199,7 @@ const writeModsConfiguration = () => {
   const mods = config.mods || [];
   const bots = config.bots || {};
   const { dependencies } = loadPackage(ModsDir);
+  /** @type {Pick<Config, "mods" | "bots">} */
   const modsJSON = { mods: [], bots: {} };
 
   for (const [name, version] of Object.entries(dependencies)) {
@@ -235,9 +264,11 @@ const start = async () => {
     process.exit(updateNeeded ? 1 : 0);
   }
 
+  // @ts-ignore We can't load that from the outer non-Node 10 side
   const screeps = require("@screeps/launcher");
   const cores = getPhysicalCores();
 
+  /** @type {Record<string, any>} */
   const options = {
     steam_api_key: process.env.STEAM_KEY || config.steamKey,
     storage_disable: false,
