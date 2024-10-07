@@ -14,9 +14,9 @@
       "automerge": true
     },
     {
-      "description": ["Ignore nodejs and npm"],
-      "matchPackageNames": ["node", "npm"],
-      "matchManagers": ["dockerfile", "npm"],
+      "description": ["Ignore unsupported updates"],
+      "matchPackageNames": ["node", "npm", "@types/node", "mongo"],
+      "matchManagers": ["dockerfile", "npm", "nvm"],
       "enabled": false
     }
   ]
