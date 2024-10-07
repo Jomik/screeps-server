@@ -42,8 +42,8 @@ WORKDIR /screeps
 # Init mods package
 RUN mkdir ./mods && echo "{}" > ./mods/package.json
 
-COPY screeps-cli.js ./bin/cli
-COPY screeps-start.js ./bin/start
+COPY screeps-cli.cjs ./bin/cli
+COPY screeps-start.cjs ./bin/start
 
 ENV SERVER_DIR=/screeps NODE_ENV=production PATH="/screeps/bin:${PATH}"
 

@@ -1,0 +1,17 @@
+{
+  "name": "screeps-server",
+  "private": true,
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Jomik/screeps-server",
+  "author": "Jonas Holst Damtoft <jonasdamtoft@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "npm": "~6",
+    "node": "10 - 12"
+  },
+  "dependencies": {
+    "screeps": "4.2.19",
+    "js-yaml": "4.1.0"
+  }
+}
