@@ -16,7 +16,7 @@
     {
       "description": ["Ignore unsupported updates"],
       "matchPackageNames": ["node", "npm", "@types/node", "mongo"],
-      "matchManagers": ["dockerfile", "npm", "nvm"],
+      "matchManagers": ["dockerfile", "docker-compose", "npm", "nvm"],
       "enabled": false
     }
   ]
