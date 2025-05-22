@@ -14,8 +14,7 @@ You can use this command (in a shell) to do the above, in your current directory
 curl --remote-name-all https://raw.githubusercontent.com/Jomik/screeps-server/main/{docker-compose.yml,.env.sample,config.yml} && cp .env.sample .env && echo ".env" >> .gitignore
 ```
 
-Paste your [Steam API key](https://steamcommunity.com/dev/apikey) into `.env`.
-
+Paste the the value labeled `Key` from your [Steam API key](https://steamcommunity.com/dev/apikey) into `.env`.
 ### Starting the server
 
 In your project run `docker compose up -d`.
