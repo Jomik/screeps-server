@@ -18,4 +18,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: Andrew-Chen-Wang/github-wiki-action@b7e552d7cb0fa7f83e459012ffc6840fd87bcb83 # master
+      - uses: Andrew-Chen-Wang/github-wiki-action@2c80c13ee98aa43683bd77973ef4916e2eedf817 # master
