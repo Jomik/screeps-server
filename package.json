@@ -7,8 +7,18 @@
   "license": "MIT",
   "scripts": {
     "check": "tsc -p tsconfig.json",
-    "update": "docker compose exec screeps start --update",
-    "cli": "docker compose exec screeps cli"
+    "start": "docker compose up -d",
+    "start:logs": "npm run start && npm run logs",
+    "stop": "docker compose stop",
+    "restart": "docker compose restart screeps",
+    "restart:logs": "npm run restart && npm run logs",
+    "reset": "docker compose down",
+    "reset:hard": "docker compose down -v",
+    "logs": "docker compose logs -ft -n 100 screeps",
+    "shell": "docker compose exec screeps /bin/sh",
+    "redis-cli": "docker compose exec redis redis-cli",
+    "cli": "docker compose exec screeps cli",
+    "update": "docker compose exec screeps start --update"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
