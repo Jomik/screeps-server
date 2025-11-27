@@ -8,6 +8,7 @@ services:
       - 21025:21025/tcp
     volumes:
       - ./config.yml:/screeps/config.yml
+      - screeps-user:/home/node
       - screeps-data:/data
       - screeps-mods:/screeps/mods
     environment:
@@ -32,5 +33,6 @@ services:
 volumes:
   screeps-data:
   screeps-mods:
+  screeps-user:
   redis-data:
   mongo-data:
