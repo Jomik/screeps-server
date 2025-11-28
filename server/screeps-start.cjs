@@ -14,12 +14,22 @@ const ConfigPath = path.join(RootDir, "config.yml");
 process.chdir(RootDir);
 
 /**
+ * @typedef LauncherOptions
+ * @property {boolean} autoUpdate
+ * @property {boolean} logConsole
+ * @property {number} runnerThreads
+ * @property {number} processorCount
+ * @property {number} storageTimeout
+ * @property {number} logRotateKeep
+ * @property {number} restartInterval
+ */
+
+/**
  * @typedef Config
  * @property {string} steamKey
  * @property {string[]} mods
  * @property {Record<string, string>} bots
- * @property {Record<string, any>} launcherOptions
- * @property {boolean} autoUpdate
+ * @property {LauncherOptions} launcherOptions
  */
 
 const config = /** @type {Config} */ (yaml.load(fs.readFileSync(ConfigPath, "utf8")));
@@ -258,7 +268,7 @@ const start = async () => {
   writeModsConfiguration();
 
   const updateOpt = process.argv.includes("--update");
-  const updateNeeded = updatePackages(updateOpt || config.autoUpdate);
+  const updateNeeded = updatePackages(updateOpt || config.launcherOptions.autoUpdate);
 
   if (updateOpt) {
     process.exit(updateNeeded ? 1 : 0);
@@ -281,6 +291,7 @@ const start = async () => {
 
   for (const [configKey, optionsKey] of Object.entries(LauncherConfigMap)) {
     if (configKey in launcherOptions) {
+      // @ts-expect-error Accessing launcherOptions without an string index
       options[optionsKey] = launcherOptions[configKey];
     }
   }
