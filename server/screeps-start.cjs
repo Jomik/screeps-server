@@ -13,25 +13,6 @@ const ConfigPath = path.join(RootDir, "config.yml");
 
 process.chdir(RootDir);
 
-/**
- * @typedef LauncherOptions
- * @property {boolean} autoUpdate
- * @property {boolean} logConsole
- * @property {number} runnerThreads
- * @property {number} processorCount
- * @property {number} storageTimeout
- * @property {number} logRotateKeep
- * @property {number} restartInterval
- */
-
-/**
- * @typedef Config
- * @property {string} steamKey
- * @property {string[]} mods
- * @property {Record<string, string>} bots
- * @property {LauncherOptions} launcherOptions
- */
-
 const config = /** @type {Config} */ (yaml.load(fs.readFileSync(ConfigPath, "utf8")));
 
 /**
