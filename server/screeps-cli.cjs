@@ -1,8 +1,8 @@
 #! /usr/bin/env node
 // @ts-ignore We can't load that from the outer non-Node 10 side
-const repl = require("repl");
+const repl = require('repl');
 const q = require('q');
-const net = require("net");
+const net = require('net');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
@@ -24,9 +24,10 @@ const HISTORY_FILE = (() => {
 /**
  * @param {string} host
  * @param {number} port
+ * @param {string} [cmd]
  * @returns
  */
-function cli(host, port) {
+function cli(host, port, cmd = undefined) {
 
   const defer = q.defer();
 
@@ -36,16 +37,31 @@ function cli(host, port) {
   let connected = false;
 
   /**
-   * Evaluate the REPL command
-   * @param {string} cmd
+   * Send a command to the server for execution
+   * @param {string} input 
+   */
+  const executeCommand = (input) => {
+    // The server side feeds the socket through `readline`, which splits on
+    // newlines. To avoid breaking multi-line input into multiple commands,
+    // we collapse internal newlines into spaces before sending.
+    const toSend = input
+      .replace(/\r?\n$/, '')   // drop the final newline REPL adds
+      .replace(/\r?\n/g, ' '); // turn internal newlines into spaces
+
+    socket.write(toSend + "\r\n");
+  }
+
+  /**
+   * Evaluate the REPL input
+   * @param {string} input
    * @param {vm.Context} context
    * @param {string} filename
    * @param {(err: Error | null, result?: any) => void} callback
    */
-  const rplEval = (cmd, context, filename, callback) => {
+  const replEval = (input, context, filename, callback) => {
     try {
       // Using "vm.Script" lets use the V8 parser to check for syntax validity.
-      new vm.Script(cmd, { filename });
+      new vm.Script(input, { filename });
     } catch (err) {
       if (!(err instanceof Error)) {
         console.error('Unexpected error from repl eval', err);
@@ -58,17 +74,10 @@ function cli(host, port) {
       return callback(err);
     }
 
-    // At this point the input is complete JS. REPL passes the whole buffered
-    // input as `cmd`, so multi-line constructs (like function definitions)
+    // At this point the input is complete JS. Pass the whole buffered input
+    // to the socket, so multi-line constructs (like function definitions)
     // are already combined.
-    // However the server side feeds the socket through `readline`, which splits
-    // on newlines. To avoid breaking multi-line input into multiple commands, we
-    // collapse internal newlines into spaces before sending.
-    const toSend = cmd
-      .replace(/\r?\n$/, '')   // drop the final newline REPL adds
-      .replace(/\r?\n/g, ' '); // turn internal newlines into spaces
-
-    socket.write(toSend + "\r\n");
+    executeCommand(input);
     callback(null);
   };
 
@@ -88,12 +97,31 @@ function cli(host, port) {
 
   socket.on('connect', () => {
     connected = true;
+
+    if (cmd) {
+      // Running in command mode, we're just gonna send the provided command,
+      // wait for an answer and exit immediately.
+      socket.on("data", data => {
+        const string = data.toString('utf8');
+        const cleaned = string.replace(/^< /, '').replace(/\n< /g, '\n');
+        if (cleaned.match(/^Screeps server v.* running on port .*/)) {
+          // Skip over server connection answer
+          return;
+        }
+
+        process.stdout.write(cleaned);
+        process.exit(1);
+      });
+      executeCommand(cmd);
+      return;
+    }
+
     defer.resolve();
     rl = repl.start({
       input: process.stdin,
       output: process.stdout,
       prompt: "> ",
-      eval: rplEval,
+      eval: replEval,
     });
 
     try {
@@ -152,4 +180,48 @@ function cli(host, port) {
   return defer.promise;
 };
 
-cli("localhost", 21026);
+// Command line options and arguments
+/** @type {string | undefined} */
+let host = undefined;
+/** @type {number | undefined} */
+let port = undefined;
+/** @type {string | undefined} */
+let command = undefined;
+
+// Janky option parsing
+const argStart = process.argv.findIndex(arg => arg === __filename) + 1;
+const ARGV = process.argv.slice(argStart);
+while (ARGV.length) {
+  if (ARGV[0][0] === "-") {
+    if (ARGV[0] === "-c") {
+      ARGV.shift()
+      command = ARGV.shift();
+    } else {
+      console.error(`Unknown option ${ARGV[0]}`);
+    }
+  } else {
+    if (host === undefined) {
+      host = ARGV.shift();
+    } else if (port === undefined) {
+      const portStr = ARGV.shift();
+      if (portStr === undefined) {
+        console.error(`Missing port number ${portStr}`);
+        process.exit(1);
+      }
+      const portNum = parseInt(portStr, 10);
+      if (isNaN(portNum)) {
+        console.error(`Invalid port number ${portStr}`);
+        process.exit(1);
+      }
+      port = portNum;
+    } else {
+      console.error(`Unknown argument ${ARGV[0]}`);
+      process.exit(1);
+    }
+  }
+}
+
+host = host || "localhost";
+port = port || 21026;
+
+cli(host, port, command);
