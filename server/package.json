@@ -11,7 +11,7 @@
     "node": "10 - 12"
   },
   "dependencies": {
-    "screeps": "4.2.20",
+    "screeps": "4.2.21",
     "js-yaml": "4.1.1"
   }
 }
