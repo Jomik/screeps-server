@@ -1,12 +1,19 @@
 ARG NODE_VERSION=10
-FROM node:${NODE_VERSION}-alpine AS screeps
+FROM node:${NODE_VERSION}-slim AS screeps
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Because Stretch is oldoldstable, it's in the archive now
+RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list \
+ && sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list \
+ && sed -i '/stretch-updates/d' /etc/apt/sources.list
+RUN apt-get update
 
 # Install node-gyp dependencies
 # We do not pin as we use multiple node versions.
 # They are so old that there is no changes to their package registry anyway..
 # hadolint ignore=DL3018
-RUN --mount=type=cache,target=/etc/apk/cache \
-  apk add --no-cache bash python2 make gcc g++
+RUN apt-get install -y bash python make gcc g++ git
 
 # Install screeps
 WORKDIR /screeps
@@ -22,10 +29,17 @@ RUN cp -a /screeps/node_modules/@screeps/launcher/init_dist/.screepsrc ./ && \
 # Gotta remove this Windows carriage return shenanigans
 RUN sed -i "s/\r//" .screepsrc
 
-FROM node:${NODE_VERSION}-alpine AS server
-# hadolint ignore=DL3018
-RUN --mount=type=cache,target=/var/cache/apk \
-  apk add --no-cache git
+FROM node:${NODE_VERSION}-slim AS server
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Because Stretch is oldoldstable, it's in the archive now
+RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list \
+ && sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list \
+ && sed -i '/stretch-updates/d' /etc/apt/sources.list
+RUN apt-get update
+
+RUN apt-get install -y git wget
 
 USER node
 COPY --from=screeps --chown=node:node /screeps /screeps/
