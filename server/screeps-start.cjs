@@ -208,7 +208,7 @@ const writeModsConfiguration = () => {
   console.log("Writing mods configuration");
   const mods = config.mods || [];
   const bots = config.bots || {};
-  const { dependencies } = loadPackage(ModsDir);
+  const { dependencies = {} } = loadPackage(ModsDir);
   /** @type {Pick<Config, "mods" | "bots">} */
   const modsJSON = { mods: [], bots: {} };
 
