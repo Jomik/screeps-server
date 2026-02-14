@@ -13,7 +13,11 @@ RUN apt-get update
 # We do not pin as we use multiple node versions.
 # They are so old that there is no changes to their package registry anyway..
 # hadolint ignore=DL3018
-RUN apt-get install -y bash python make gcc g++ git
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update \
+    && apt-get install -y --no-install-recommends bash python make gcc g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install screeps
 WORKDIR /screeps
@@ -37,9 +41,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list \
  && sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list \
  && sed -i '/stretch-updates/d' /etc/apt/sources.list
-RUN apt-get update
 
-RUN apt-get install -y git wget
+# Install git for direct mod loading and wget for the healthcheck
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update \
+    && apt-get install -y --no-install-recommends git wget \
+    && rm -rf /var/lib/apt/lists/*
 
 USER node
 COPY --from=screeps --chown=node:node /screeps /screeps/
