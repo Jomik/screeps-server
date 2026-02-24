@@ -16,7 +16,10 @@ services:
       REDIS_HOST: redis
       STEAM_KEY: ${STEAM_KEY:?"Missing steam key"}
     restart: unless-stopped
-    build: server
+    build:
+      context: server
+      args:
+        SCREEPS_COMPONENTS: ${SCREEPS_COMPONENTS}
 
   mongo:
     image: mongo:4.4.30

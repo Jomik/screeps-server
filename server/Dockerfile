@@ -17,7 +17,7 @@ RUN apt-get update
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates bash python make gcc g++ \
+    && apt-get install -y --no-install-recommends ca-certificates bash python make gcc g++ git \
     && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates
 
@@ -37,6 +37,12 @@ RUN cp -a /screeps/node_modules/@screeps/launcher/init_dist/.screepsrc ./ && \
 # Gotta remove this Windows carriage return shenanigans
 RUN sed -i "s/\r//" .screepsrc
 
+# A JSON object in an env var (yay) that `screeps-install` will use to
+# swap in specific server components at build time.
+ARG SCREEPS_COMPONENTS
+COPY --chown=node:node screeps-install.cjs ./bin/install
+RUN SCREEPS_COMPONENTS="$SCREEPS_COMPONENTS" SERVER_DIR=/screeps ./bin/install
+
 FROM node:${NODE_VERSION}-slim AS server
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -50,7 +56,7 @@ RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list \
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
-    && apt-get install -y --no-install-recommends git wget \
+    && apt-get install -y --no-install-recommends wget \
     && rm -rf /var/lib/apt/lists/*
 
 USER node
