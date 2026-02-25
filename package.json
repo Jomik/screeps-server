@@ -15,7 +15,7 @@
     "reset": "docker compose down",
     "reset:hard": "docker compose down -v",
     "logs": "docker compose logs -ft -n 100 screeps",
-    "shell": "docker compose exec screeps /bin/sh",
+    "shell": "docker compose exec screeps /bin/bash",
     "redis-cli": "docker compose exec redis redis-cli",
     "cli": "docker compose exec screeps cli",
     "update": "docker compose exec screeps start --update"
