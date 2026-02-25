@@ -1,5 +1,5 @@
 ARG NODE_VERSION=10
-FROM node:${NODE_VERSION}-slim AS screeps
+FROM node:${NODE_VERSION}-slim AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -12,12 +12,16 @@ RUN apt-get update
 # Install node-gyp dependencies
 # We do not pin as we use multiple node versions.
 # They are so old that there is no changes to their package registry anyway..
+# While we're at it, try fixing the root certificates
 # hadolint ignore=DL3018
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
-    && apt-get install -y --no-install-recommends bash python make gcc g++ \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends ca-certificates bash python make gcc g++ \
+    && rm -rf /var/lib/apt/lists/* \
+    && update-ca-certificates
+
+FROM base AS screeps
 
 # Install screeps
 WORKDIR /screeps
