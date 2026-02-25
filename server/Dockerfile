@@ -1,5 +1,5 @@
 ARG NODE_VERSION=10
-FROM node:${NODE_VERSION}-slim AS screeps
+FROM node:${NODE_VERSION}-slim AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -20,6 +20,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && apt-get install -y --no-install-recommends ca-certificates bash python make gcc g++ \
     && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates
+
+FROM base AS screeps
 
 # Install screeps
 WORKDIR /screeps
