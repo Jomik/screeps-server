@@ -46,12 +46,21 @@ RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list \
  && sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list \
  && sed -i '/stretch-updates/d' /etc/apt/sources.list
 
-# Install git for direct mod loading and wget for the healthcheck
+# Install git for direct mod loading and wget for the healthcheck.
+# ca-certificates and ssh allow mods/bots to be installed via npm using
+# alternative formats such as:
+# - ScreepsMods/screepsmod-mymod#my-test-branch
+# - https://github.com/ScreepsMods/screepsmod-mymod@my-tag-or-commit-spec
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
-    && apt-get install -y --no-install-recommends git wget \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      git \
+      wget \
+      ssh \
+    && rm -rf /var/lib/apt/lists/* \
+    && update-ca-certificates
 
 USER node
 COPY --from=screeps --chown=node:node /screeps /screeps/
