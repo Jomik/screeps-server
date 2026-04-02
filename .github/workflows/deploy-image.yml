@@ -17,7 +17,69 @@ on:
   workflow_dispatch:
 
 jobs:
-  push-image:
+  build:
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+        platform:
+          - pair: linux/amd64
+            runner: ubuntu-latest
+            slug: linux-amd64
+          - pair: linux/arm64
+            runner: ubuntu-24.04-arm
+            slug: linux-arm64
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME=${IMAGE_NAME@L}" >> "$GITHUB_ENV"
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Log in to the Container registry
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4
+      - name: Extract metadata (labels) for Docker
+        id: meta
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          github-token: ${{ github.token }}
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
+        with:
+          context: server
+          build-args: |
+            NODE_VERSION=${{ matrix.node }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ matrix.platform.pair }}
+          outputs: type=image,"name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}",push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=build-node${{ matrix.node }}-${{ matrix.platform.slug }}
+          cache-to: type=gha,scope=build-node${{ matrix.node }}-${{ matrix.platform.slug }},mode=max
+      - name: Export digest
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/digests"
+          digest="${{ steps.build.outputs.digest }}"
+          touch "$RUNNER_TEMP/digests/${digest#sha256:}"
+      - name: Upload digest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: digests-node${{ matrix.node }}-${{ matrix.platform.slug }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -26,8 +88,14 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: "Checkout GitHub Action"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME=${IMAGE_NAME@L}" >> "$GITHUB_ENV"
+      - name: Download digests
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-node${{ matrix.node }}-*
+          merge-multiple: true
       - name: Log in to the Container registry
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
         with:
@@ -51,15 +119,15 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
             type=sha
-      - name: Build and push Docker image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
-        with:
-          context: server
-          push: true
-          build-args: |
-            NODE_VERSION=${{ matrix.node }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Create multi-arch manifest
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          set -euo pipefail
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+      - name: Inspect image
+        run: |
+          set -euo pipefail
+          docker buildx imagetools inspect \
+            $(jq -cr '.tags[0]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
