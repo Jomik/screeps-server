@@ -15,9 +15,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          draft=$(gh api repos/${{ github.repository }}/releases --paginate --jq '[.[] | select(.draft == true)] | sort_by(.created_at) | last | .id')
+          draft=$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq '[.[] | select(.draft == true)] | sort_by(.created_at) | last | .id')
           if [ -n "$draft" ] && [ "$draft" != "null" ]; then
-            gh api -X PATCH "repos/${{ github.repository }}/releases/$draft" -F draft=false
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$draft" -F draft=false
             echo "Published release $draft"
           else
             echo "No draft release found"
