@@ -31,6 +31,9 @@ RUN cp -a /screeps/node_modules/@screeps/launcher/init_dist/.screepsrc ./ && \
 # Gotta remove this Windows carriage return shenanigans
 RUN sed -i "s/\r//" .screepsrc
 
+# Fix up some of the bind adresses craziness
+RUN sed -i "s/host = 0.0.0.0/host = ::/" .screepsrc && sed -i "s/cli_host = localhost/cli_host = ::/" .screepsrc
+
 FROM node:${NODE_VERSION}-slim AS server
 
 ENV DEBIAN_FRONTEND=noninteractive
