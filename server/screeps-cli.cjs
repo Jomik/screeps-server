@@ -1,5 +1,4 @@
 #! /usr/bin/env node
-// @ts-ignore We can't load that from the outer non-Node 10 side
 const repl = require('repl');
 const q = require('q');
 const net = require('net');
