@@ -52,12 +52,24 @@ jobs:
           STEAM_KEY: ${{ secrets.STEAM_KEY }}
           CONFIG_FILE: ${{ format('{0}/{1}', github.workspace, 'test-config.yml') }}
       - name: Wait for container to be healthy
-        uses: stringbean/docker-healthcheck-action@a958d329225ccbd485766815734e01c335e62bd4 # v3
-        with:
-          container: screeps
-          wait-time: 60
-          require-status: running
-          require-healthy: true
+        run: |
+          timeout=60
+          while [ "$timeout" -gt 0 ]; do
+            status=$(docker inspect --format='{{.State.Status}}' screeps 2>/dev/null || echo "missing")
+            if [ "$status" != "running" ] && [ "$status" != "created" ]; then
+              echo "Container exited unexpectedly (status: $status)"
+              exit 1
+            fi
+            health=$(docker inspect --format='{{.State.Health.Status}}' screeps 2>/dev/null || echo "starting")
+            if [ "$health" = "healthy" ]; then
+              echo "Container is healthy"
+              exit 0
+            fi
+            sleep 2
+            timeout=$((timeout - 2))
+          done
+          echo "Container not healthy after 60s (health: $health)"
+          exit 1
       - name: Show container logs
         if: always()
         run: docker container logs screeps
