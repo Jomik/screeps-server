@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [10, 12]
+        node: [22, 24]
     permissions:
       contents: read
       packages: write
@@ -44,7 +44,7 @@ jobs:
           github-token: ${{ github.token }}
           flavor: |
             latest=auto
-            suffix=${{ matrix.node != 10 && format('-node{0}', matrix.node) || '' }},onlatest=true
+            suffix=${{ matrix.node != 24 && format('-node{0}', matrix.node) || '' }},onlatest=true
           tags: |
             type=edge,branch=main
             type=semver,pattern={{version}}

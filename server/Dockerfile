@@ -1,13 +1,7 @@
-ARG NODE_VERSION=10
+ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-slim AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
-
-# Because Stretch is oldoldstable, it's in the archive now
-RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list \
- && sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list \
- && sed -i '/stretch-updates/d' /etc/apt/sources.list
-RUN apt-get update
 
 # Install node-gyp dependencies
 # We do not pin as we use multiple node versions.
@@ -17,7 +11,7 @@ RUN apt-get update
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates bash python make gcc g++ \
+    && apt-get install -y --no-install-recommends ca-certificates bash python-is-python3 make gcc g++ \
     && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates
 
@@ -37,14 +31,12 @@ RUN cp -a /screeps/node_modules/@screeps/launcher/init_dist/.screepsrc ./ && \
 # Gotta remove this Windows carriage return shenanigans
 RUN sed -i "s/\r//" .screepsrc
 
+# Fix up some of the bind adresses craziness
+RUN sed -i "s/host = 0.0.0.0/host = ::/" .screepsrc && sed -i "s/cli_host = localhost/cli_host = ::/" .screepsrc
+
 FROM node:${NODE_VERSION}-slim AS server
 
 ENV DEBIAN_FRONTEND=noninteractive
-
-# Because Stretch is oldoldstable, it's in the archive now
-RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list \
- && sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list \
- && sed -i '/stretch-updates/d' /etc/apt/sources.list
 
 # Install git for direct mod loading and wget for the healthcheck.
 # ca-certificates and ssh allow mods/bots to be installed via npm using
@@ -59,6 +51,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
       git \
       wget \
       ssh \
+      nano \
     && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates
 
