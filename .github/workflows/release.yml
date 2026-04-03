@@ -8,8 +8,17 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Publish Latest Release
-        uses: ivangabriele/publish-latest-release@df1a4afd8aea9d1f0ba5ebeb89452aeac7bca0a9 # v3
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          draft=$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq '[.[] | select(.draft == true)] | sort_by(.created_at) | last | .id')
+          if [ -n "$draft" ] && [ "$draft" != "null" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$draft" -F draft=false
+            echo "Published release $draft"
+          else
+            echo "No draft release found"
+          fi
