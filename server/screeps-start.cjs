@@ -177,7 +177,10 @@ const updatePackages = (doUpdate) => {
   }
 
   console.log(`Updating outdated mods`, ...versionSpecs);
-  execSync(`npm install --loglevel=error --no-progress -E ${versionSpecs.join(" ")}`, {
+  // FIXME: --omit=peer because we don't want to pull authmod's peerDependency on @screeps/backend,
+  // otherwise the whole authentication system breaks as there's now two places trying to set up 
+  // Passport strategies.
+  execSync(`npm install --loglevel=error --no-progress -E --omit=peer ${versionSpecs.join(" ")}`, {
     cwd: ModsDir,
     stdio: "inherit",
     encoding: "utf8",
