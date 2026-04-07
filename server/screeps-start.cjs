@@ -100,8 +100,11 @@ const installPackages = () => {
 
   if (newPackages.length > 0) {
     console.log("Installing", ...newPackages);
+    // FIXME: --omit=peer because we don't want to pull authmod's peerDependency on @screeps/backend,
+    // otherwise the whole authentication system breaks as there's now two places trying to set up 
+    // Passport strategies.
     execSync(
-      `npm install --no-progress -E ${newPackages.join(" ")}`,
+      `npm install --no-progress -E --omit=peer ${newPackages.join(" ")}`,
       {
         cwd: ModsDir,
         stdio: "inherit",
