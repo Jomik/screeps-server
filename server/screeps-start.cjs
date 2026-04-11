@@ -13,7 +13,23 @@ const ConfigPath = path.join(RootDir, "config.yml");
 
 process.chdir(RootDir);
 
-const config = /** @type {Config} */ (yaml.load(fs.readFileSync(ConfigPath, "utf8")));
+const rawConfig = /** @type {Config} */ (yaml.load(fs.readFileSync(ConfigPath, "utf8"))) || {};
+
+const steamKey = process.env.STEAM_KEY || rawConfig.steamKey;
+if (!steamKey) {
+  throw new Error("Missing steam API key. Set the STEAM_KEY environment variable or steamKey in config.yml.");
+}
+
+/** @type {ResolvedConfig} */
+const config = {
+  steamKey,
+  mods: rawConfig.mods || [],
+  bots: rawConfig.bots || {},
+  launcherOptions: {
+    autoUpdate: false,
+    ...rawConfig.launcherOptions,
+  },
+};
 
 /**
  * @param {string} dir
@@ -53,8 +69,8 @@ const parseVersionSpec = (spec) => {
 
 const installPackages = () => {
   console.log("Updating dependencies");
-  const mods = config.mods || [];
-  const bots = config.bots || {};
+  const mods = config.mods;
+  const bots = config.bots;
 
   const modsPackage = loadPackage(ModsDir);
   const dependencies = modsPackage.dependencies || {};
@@ -122,8 +138,8 @@ const installPackages = () => {
  * @returns 
  */
 const updatePackages = (doUpdate) => {
-  const mods = config.mods || [];
-  const bots = config.bots || {};
+  const mods = config.mods;
+  const bots = config.bots;
 
   const modsPackage = loadPackage(ModsDir);
   const dependencies = modsPackage.dependencies || {};
@@ -193,10 +209,10 @@ const updatePackages = (doUpdate) => {
 
 const writeModsConfiguration = () => {
   console.log("Writing mods configuration");
-  const mods = config.mods || [];
-  const bots = config.bots || {};
+  const mods = config.mods;
+  const bots = config.bots;
   const { dependencies = {} } = loadPackage(ModsDir);
-  /** @type {Pick<Config, "mods" | "bots">} */
+  /** @type {Pick<ResolvedConfig, "mods" | "bots">} */
   const modsJSON = { mods: [], bots: {} };
 
   for (const [name, version] of Object.entries(dependencies)) {
@@ -255,7 +271,7 @@ const start = async () => {
   writeModsConfiguration();
 
   const updateOpt = process.argv.includes("--update");
-  const updateNeeded = updatePackages(updateOpt || config.launcherOptions?.autoUpdate);
+  const updateNeeded = updatePackages(updateOpt || config.launcherOptions.autoUpdate);
 
   if (updateOpt) {
     process.exit(updateNeeded ? 1 : 0);
@@ -267,14 +283,14 @@ const start = async () => {
 
   /** @type {Record<string, any>} */
   const options = {
-    steam_api_key: process.env.STEAM_KEY || config.steamKey,
+    steam_api_key: config.steamKey,
     storage_disable: false,
     processors_cnt: cores,
     runners_cnt: 1,
     runner_threads: Math.max(cores - 1, 1),
   };
 
-  const launcherOptions = config.launcherOptions || {};
+  const launcherOptions = config.launcherOptions;
 
   for (const [configKey, optionsKey] of Object.entries(LauncherConfigMap)) {
     if (configKey in launcherOptions) {
