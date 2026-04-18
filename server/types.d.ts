@@ -16,9 +16,4 @@ interface Config {
     launcherOptions?: LauncherOptions;
 }
 
-interface ResolvedConfig {
-    steamKey: string;
-    mods: string[];
-    bots: Record<string, string>;
-    launcherOptions: LauncherOptions;
-}
+type ResolvedConfig = Required<Config>;
