@@ -271,7 +271,7 @@ const start = async () => {
   writeModsConfiguration();
 
   const updateOpt = process.argv.includes("--update");
-  const updateNeeded = updatePackages(updateOpt || config.launcherOptions.autoUpdate);
+  const updateNeeded = updatePackages(updateOpt || (config.launcherOptions.autoUpdate ?? false));
 
   if (updateOpt) {
     process.exit(updateNeeded ? 1 : 0);
