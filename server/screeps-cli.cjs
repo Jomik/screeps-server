@@ -34,10 +34,11 @@ function cli(host, port, cmd = undefined) {
   /** @type {repl.REPLServer} */
   let rl;
   let connected = false;
+  let commandAnswered = false;
 
   /**
    * Send a command to the server for execution
-   * @param {string} input 
+   * @param {string} input
    */
   const executeCommand = (input) => {
     // The server side feeds the socket through `readline`, which splits on
@@ -108,8 +109,14 @@ function cli(host, port, cmd = undefined) {
           return;
         }
 
-        process.stdout.write(cleaned);
-        process.exit(1);
+        commandAnswered = true;
+        try {
+          process.stdout.write(cleaned);
+        } catch {
+          process.exit(1);
+          return;
+        }
+        process.exit(0);
       });
       executeCommand(cmd);
       return;
@@ -172,6 +179,12 @@ function cli(host, port, cmd = undefined) {
   socket.on('close', () => {
     if (rl) {
       rl.close();
+    }
+    if (cmd) {
+      if (!commandAnswered) {
+        process.exit(1);
+      }
+      return;
     }
     process.exit(0);
   });
