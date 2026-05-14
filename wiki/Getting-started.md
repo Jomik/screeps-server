@@ -8,6 +8,8 @@ You can use [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 Download the [compose file](./docker-compose.yml), [envfile](./.env.sample) and [configuration](./config.yml) file to your computer. You can put this in your Screeps project.
 Copy `.env.sample` to `.env`, this can hold secrets for you, and should be ignored in git!
 
+If you plan on doing server backups, also get the [database.sh script](../scripts/database.sh) and read [Backups](Backups.md).
+
 You can use this command (in a shell) to do the above, in your current directory.
 
 ```sh
