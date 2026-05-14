@@ -18,7 +18,9 @@
     "shell": "docker compose exec screeps /bin/bash",
     "redis-cli": "docker compose exec redis redis-cli",
     "cli": "docker compose exec screeps cli",
-    "update": "docker compose exec screeps start --update"
+    "update": "docker compose exec screeps start --update",
+    "backup": "docker compose --profile tools run --rm backup-tool backup",
+    "restore": "docker compose --profile tools run --rm backup-tool restore"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
