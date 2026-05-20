@@ -22,6 +22,7 @@ jobs:
       matrix:
         imageName:
           - ${IMAGE}
+          - ${IMAGE}-backup-tool
         node: [22, 24]
         platform:
           - pair: linux/amd64
@@ -30,6 +31,8 @@ jobs:
           - pair: linux/arm64
             runner: ubuntu-24.04-arm
             slug: linux-arm64
+        exclude:
+          - imageName: ${{ github.repository }}-backup-tool
     permissions:
       contents: read
       packages: write
@@ -62,7 +65,7 @@ jobs:
         id: build
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7
         with:
-          context: server
+          context: ${{ matrix.imageName == format('{0}/backup-tool', github.repository) && 'backup-tool' || 'server' }}
           build-args: |
             NODE_VERSION=${{ matrix.node }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -92,7 +95,11 @@ jobs:
       matrix:
         imageName:
           - ${IMAGE}
+          - ${{ github.repository }}/backup-tool
         node: [22, 24]
+        exclude:
+          - imageName: ${{ github.repository }}/backup-tool
+            node: 22
     permissions:
       contents: read
       packages: write
