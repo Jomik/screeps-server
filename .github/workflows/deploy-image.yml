@@ -2,7 +2,7 @@ name: Deploy Images to GHCR
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE: ${{github.repository}}
 
 on:
   push:
@@ -20,6 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        imageName:
+          - ${IMAGE}
         node: [22, 24]
         platform:
           - pair: linux/amd64
@@ -32,8 +34,14 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Lowercase image name
-        run: echo "IMAGE_NAME=${IMAGE_NAME@L}" >> "$GITHUB_ENV"
+      - id: image-ref
+        name: Image ref from matrix
+        run: |
+          set -euo pipefail
+          img=$(echo '${{ matrix.imageName }}' | tr '[:upper:]' '[:lower:]')
+          slug=$(echo '${{ matrix.imageName }}' | tr '/' '-')
+          echo "push_image=${REGISTRY}/${img}" >> "$GITHUB_OUTPUT"
+          echo "image_slug=${slug}" >> "$GITHUB_OUTPUT"
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Log in to the Container registry
@@ -48,7 +56,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ steps.image-ref.outputs.push_image }}
           github-token: ${{ github.token }}
       - name: Build and push by digest
         id: build
@@ -59,9 +67,9 @@ jobs:
             NODE_VERSION=${{ matrix.node }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.platform.pair }}
-          outputs: type=image,"name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}",push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=gha,scope=build-node${{ matrix.node }}-${{ matrix.platform.slug }}
-          cache-to: type=gha,scope=build-node${{ matrix.node }}-${{ matrix.platform.slug }},mode=max
+          outputs: type=image,"name=${{ steps.image-ref.outputs.push_image }}",push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=build-${{ steps.image-ref.outputs.image_slug }}-node${{ matrix.node }}-${{ matrix.platform.slug }}
+          cache-to: type=gha,scope=build-${{ steps.image-ref.outputs.image_slug }}-node${{ matrix.node }}-${{ matrix.platform.slug }},mode=max
       - name: Export digest
         run: |
           set -euo pipefail
@@ -71,7 +79,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: digests-node${{ matrix.node }}-${{ matrix.platform.slug }}
+          name: digests-${{ steps.image-ref.outputs.image_slug }}-node${{ matrix.node }}-${{ matrix.platform.slug }}
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
@@ -80,19 +88,28 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
+        imageName:
+          - ${IMAGE}
         node: [22, 24]
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Lowercase image name
-        run: echo "IMAGE_NAME=${IMAGE_NAME@L}" >> "$GITHUB_ENV"
+      - id: image-ref
+        name: Image ref from matrix
+        run: |
+          set -euo pipefail
+          img=$(echo '${{ matrix.imageName }}' | tr '[:upper:]' '[:lower:]')
+          slug=$(echo '${{ matrix.imageName }}' | tr '/' '-')
+          echo "push_image=${REGISTRY}/${img}" >> "$GITHUB_OUTPUT"
+          echo "image_slug=${slug}" >> "$GITHUB_OUTPUT"
       - name: Download digests
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: ${{ runner.temp }}/digests
-          pattern: digests-node${{ matrix.node }}-*
+          pattern: digests-${{ steps.image-ref.outputs.image_slug }}-node${{ matrix.node }}-*
           merge-multiple: true
       - name: Log in to the Container registry
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
@@ -106,7 +123,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ steps.image-ref.outputs.push_image }}
           github-token: ${{ github.token }}
           flavor: |
             latest=auto
@@ -123,7 +140,7 @@ jobs:
           set -euo pipefail
           docker buildx imagetools create \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+            $(printf '${{ steps.image-ref.outputs.push_image }}@sha256:%s ' *)
       - name: Inspect image
         run: |
           set -euo pipefail
