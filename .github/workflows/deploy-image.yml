@@ -2,7 +2,6 @@ name: Deploy Images to GHCR
 
 env:
   REGISTRY: ghcr.io
-  IMAGE: ${{github.repository}}
 
 on:
   push:
@@ -21,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         imageName:
-          - ${IMAGE}
+          - ${{ github.repository }}
         node: [22, 24]
         platform:
           - pair: linux/amd64
@@ -91,7 +90,7 @@ jobs:
       fail-fast: false
       matrix:
         imageName:
-          - ${IMAGE}
+          - ${{ github.repository }}
         node: [22, 24]
     permissions:
       contents: read
