@@ -9,6 +9,8 @@ Download the [compose file](../docker-compose.yml), [envfile](../.env.sample), [
 Copy `.env.sample` to `.env`, this can hold secrets for you, and should be ignored in git!
 You can also get the [package.json file](../package.json) because it has scripts set up for quick server administration. You'll need `npm` available for that, and this is only because of the `scripts` section in it, so running `npm install` is entirely unnecessary.
 
+If you plan on doing server backups, read [Backups](Backups.md).
+
 You can use this command (in a shell) to do the above, in your current directory.
 
 ```sh
