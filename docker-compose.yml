@@ -5,7 +5,9 @@ services:
       - mongo
       - redis
     ports:
-      - 21025:21025/tcp
+      - "21025:21025/tcp"
+    expose:
+      - "21025"
     volumes:
       - ./config.yml:/screeps/config.yml
       - screeps-user:/home/node
@@ -15,6 +17,11 @@ services:
       MONGO_HOST: mongo
       REDIS_HOST: redis
       STEAM_KEY: ${STEAM_KEY:?"Missing steam key"}
+      VIRTUAL_HOST: ${SERVER_HOSTNAME:-}
+      VIRTUAL_PORT: "21025"
+      LETSENCRYPT_HOST: ${SERVER_HOSTNAME:-}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-}
+      HTTPS_METHOD: redirect
     restart: unless-stopped
     build: server
 
@@ -30,9 +37,50 @@ services:
       - redis-data:/data
     restart: unless-stopped
 
+  nginx:
+    image: nginxproxy/nginx-proxy
+    profiles: [https]
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - certs:/etc/nginx/certs
+      - vhostd:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - ./nginx-custom.conf:/etc/nginx/conf.d/my_proxy.conf:ro
+    labels:
+      - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true
+    environment:
+      TRUST_DOWNSTREAM_PROXY: "false"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  letsencrypt-companion:
+    image: nginxproxy/acme-companion
+    profiles: [https]
+    restart: unless-stopped
+    depends_on:
+      - nginx
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - certs:/etc/nginx/certs
+      - vhostd:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - acme:/etc/acme.sh
+    environment:
+      DEFAULT_EMAIL: ${LETSENCRYPT_EMAIL}
+
 volumes:
   screeps-data:
   screeps-mods:
   screeps-user:
   redis-data:
   mongo-data:
+  certs:
+  vhostd:
+  html:
+  acme:
