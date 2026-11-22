@@ -42,7 +42,7 @@ jobs:
           build-args: |
             NODE_VERSION=${{ matrix.node }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,ignore-error=true
           tags: ${{ env.TEST_TAG }}
           load: true
       - name: Start the container
