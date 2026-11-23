@@ -16,9 +16,9 @@ Please check the [wiki](https://github.com/Jomik/screeps-server/wiki)! I will tr
 
 ## Contributing and CI
 
-Pull request CI tests the server on Node.js 22 and 24, including startup tests that require a real `STEAM_KEY`.
-Same-repository runs can use the repository's `STEAM_KEY` secret.
-Upstream fork PR runs receive neither the upstream nor the fork's `STEAM_KEY`, so startup tests cannot pass without it.
-A fork-owned secret is usable only in a workflow run hosted in that fork; an ordinary upstream `pull_request` run does not inherit it.
+Pull request CI builds and starts the server on Node.js 22 and 24 and checks health, mods, and bots; a working `STEAM_KEY` is required.
+Same-repository PR runs can use the repository's `STEAM_KEY` secret.
+A `pull_request` from a fork targeting this repository runs here with neither this repository's nor the fork's `STEAM_KEY`, so startup integration fails without the key.
+To test with your own key, enable Actions in your fork, add `STEAM_KEY` as a fork repository secret, and open a PR from a branch against that fork's `main` (the workflow only triggers on PRs targeting `main`).
 
 [screepers/screeps-launcher]: https://github.com/screepers/screeps-launcher
