@@ -68,7 +68,7 @@ RUN mv /screeps/assets /data/assets && \
 WORKDIR /screeps
 
 # Init mods package
-RUN mkdir ./mods && echo "{}" > ./mods/package.json
+RUN mkdir -p ./mods
 
 COPY screeps-cli.cjs ./bin/cli
 COPY screeps-start.cjs ./bin/start

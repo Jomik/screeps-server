@@ -8,10 +8,11 @@ const RootDir = process.env["SERVER_DIR"];
 if (!RootDir) {
   throw new Error("Missing environment variable $SERVER_DIR");
 }
-const ModsDir = path.join(RootDir, "mods");
 const ConfigPath = path.join(RootDir, "config.yml");
+const ManagedDepsPath = path.join(RootDir, "mods", "managed-deps.json");
 
 process.chdir(RootDir);
+fs.mkdirSync(path.dirname(ManagedDepsPath), { recursive: true });
 
 const rawConfig = /** @type {Config} */ (yaml.load(fs.readFileSync(ConfigPath, "utf8"))) || {};
 
@@ -38,15 +39,6 @@ const config = {
 const loadPackage = (dir) =>
   JSON.parse(fs.readFileSync(path.resolve(dir, "package.json"), "utf8"));
 
-/**
- *
- * @param {string} pkg
- * @param {[string, string]} param
- * @returns {boolean}
- */
-const isDependency = (pkg, [name, version]) =>
-  pkg.includes(name) || version.includes(pkg);
-
 const VERSION = /^(=|^|~|<|>|<=|>=)?\d+(?:\.\d+(?:\.\d+(?:.*)?)?)?$/
 
 /**
@@ -67,68 +59,218 @@ const parseVersionSpec = (spec) => {
   return [name, version];
 }
 
+/**
+ * @param {string} spec
+ * @returns {boolean}
+ */
+const isPathLikeSpec = (spec) =>
+  spec.startsWith("/") ||
+  spec.startsWith("./") ||
+  spec.startsWith("../") ||
+  spec.startsWith("file:");
+
+/**
+ * @param {string} spec
+ * @returns {string | undefined}
+ */
+const getNameFromPathLikeSpec = (spec) => {
+  const rawPath = spec.startsWith("file:") ? spec.slice("file:".length) : spec;
+  const pkgPath = path.resolve(rawPath, "package.json");
+  try {
+    const parsed = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+    return typeof parsed.name === "string" ? parsed.name : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * @returns {{ mods: Array<{spec: string; name: string; version: string | null}>; bots: Record<string, {spec: string; name: string; version: string | null}> }}
+ */
+const loadManagedDeps = () => {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(ManagedDepsPath, "utf8"));
+    return {
+      mods: Array.isArray(parsed.mods) ? parsed.mods : [],
+      bots: parsed.bots && typeof parsed.bots === "object" ? parsed.bots : {},
+    };
+  } catch {
+    return { mods: [], bots: {} };
+  }
+};
+
+/**
+ * @param {{ mods: Array<{spec: string; name: string; version: string | null}>; bots: Record<string, {spec: string; name: string; version: string | null}> }} managed
+ */
+const writeManagedDeps = (managed) => {
+  fs.writeFileSync(ManagedDepsPath, JSON.stringify(managed, null, 2));
+};
+
+/**
+ * @param {string[]} specs
+ * @param {Record<string, string>} dependencies
+ * @returns {string[]}
+ */
+const resolvePackageNames = (specs, dependencies) => specs
+  .map((spec) => {
+    const [parsedName] = parseVersionSpec(spec);
+    if (dependencies[parsedName] !== undefined) {
+      return parsedName;
+    }
+
+    if (isPathLikeSpec(spec)) {
+      const localName = getNameFromPathLikeSpec(spec);
+      if (localName && dependencies[localName] !== undefined) {
+        return localName;
+      }
+    }
+
+    const matchingByExactVersion = Object.entries(dependencies).find(
+      ([, version]) => version === spec,
+    );
+    if (matchingByExactVersion) {
+      return matchingByExactVersion[0];
+    }
+
+    return undefined;
+  })
+  .filter((name) => name !== undefined);
+
+/**
+ * @param {string} packageName
+ * @returns {string | null}
+ */
+const getInstalledVersion = (packageName) => {
+  const pkgDir = path.resolve(RootDir, "node_modules", packageName);
+  try {
+    const pkg = loadPackage(pkgDir);
+    return typeof pkg.version === "string" ? pkg.version : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * @param {string[]} mods
+ * @param {Record<string, string>} bots
+ * @param {Record<string, string>} dependencies
+ */
+const buildResolvedManagedDeps = (mods, bots, dependencies) => {
+  const resolvedMods = mods
+    .map((spec) => {
+      const [name] = resolvePackageNames([spec], dependencies);
+      if (!name) return undefined;
+      return { spec, name, version: getInstalledVersion(name) };
+    })
+    .filter((entry) => entry !== undefined);
+
+  /** @type {Record<string, {spec: string; name: string; version: string | null}>} */
+  const resolvedBots = {};
+  for (const [botName, spec] of Object.entries(bots)) {
+    const [name] = resolvePackageNames([spec], dependencies);
+    if (!name) continue;
+    resolvedBots[botName] = { spec, name, version: getInstalledVersion(name) };
+  }
+
+  return { mods: resolvedMods, bots: resolvedBots };
+};
+
+/**
+ * @param {string} spec
+ * @param {string | null} version
+ * @param {string | undefined} name
+ * @returns {string}
+ */
+const getInstallSpec = (spec, version, name) => {
+  if (version && name && !isPathLikeSpec(spec)) {
+    return `${name}@${version}`;
+  }
+  return spec;
+};
+
 const installPackages = () => {
   console.log("Updating dependencies");
   const mods = config.mods;
   const bots = config.bots;
+  const managed = loadManagedDeps();
 
-  const modsPackage = loadPackage(ModsDir);
-  const dependencies = modsPackage.dependencies || {};
+  const rootPackage = loadPackage(RootDir);
+  const dependencies = rootPackage.dependencies || {};
+  const managedResolvedMods = managed.mods || [];
+  const managedResolvedBots = managed.bots || {};
 
-  // Calculate package diff
-  const packages = [...mods, ...Object.values(bots)];
+  const removedPackages = [
+    ...managedResolvedMods
+      .filter((entry) => !mods.includes(entry.spec))
+      .map((entry) => entry.name),
+    ...Object.entries(managedResolvedBots)
+      .filter(([botName, entry]) => bots[botName] !== entry.spec)
+      .map(([, entry]) => entry.name),
+  ];
 
-  const newPackages = packages.filter(
-    (pkg) =>
-      !Object.entries(dependencies).some((dependency) =>
-        isDependency(pkg, dependency),
-      ),
-  );
-  const removedPackages = Object.entries(dependencies).filter(
-    (dependency) => !packages.some((pkg) => isDependency(pkg, dependency)),
-  );
+  const modInstallSpecs = mods.map((spec) => {
+    const locked = managedResolvedMods.find((entry) => entry.spec === spec);
+    return getInstallSpec(spec, locked?.version || null, locked?.name);
+  });
+  const botInstallSpecs = Object.entries(bots).map(([botName, spec]) => {
+    const locked = managedResolvedBots[botName];
+    if (locked && locked.spec === spec) {
+      return getInstallSpec(spec, locked.version, locked.name);
+    }
+    return spec;
+  });
+  const desiredInstallSpecs = [...modInstallSpecs, ...botInstallSpecs];
+
+  const newPackages = desiredInstallSpecs.filter((installSpec) => {
+    const [name, version] = parseVersionSpec(installSpec);
+    if (isPathLikeSpec(installSpec)) {
+      const localName = getNameFromPathLikeSpec(installSpec);
+      return !localName || dependencies[localName] === undefined;
+    }
+    const installedVersion = dependencies[name];
+    if (installedVersion === undefined) {
+      return true;
+    }
+    if (version === "latest") {
+      return false;
+    }
+    return installedVersion !== version;
+  });
 
   if (removedPackages.length === 0 && newPackages.length === 0) {
     console.log("No dependency changes");
   }
 
   if (removedPackages.length > 0) {
-    const packageNames = removedPackages
-      .map((pkg) => {
-        const entry =
-          Object.entries(dependencies).find(
-            ([name, version]) => pkg.includes(name) || version.includes(pkg),
-          ) || [];
-        return entry[0];
-      })
-      .filter((name) => name !== undefined);
+    const packageNames = [...new Set(removedPackages)];
 
-    console.log("Uninstalling", ...packageNames);
-    execSync(
-      `npm uninstall --no-progress ${packageNames.join(" ")}`,
-      {
-        cwd: ModsDir,
-        stdio: "inherit",
-        encoding: "utf8",
-      },
-    );
+    if (packageNames.length > 0) {
+      console.log("Uninstalling", ...packageNames);
+      execSync(
+        `npm uninstall --no-progress ${packageNames.join(" ")}`,
+        {
+          cwd: RootDir,
+          stdio: "inherit",
+          encoding: "utf8",
+        },
+      );
+    }
   }
 
   if (newPackages.length > 0) {
     console.log("Installing", ...newPackages);
-    // FIXME: --omit=peer because we don't want to pull authmod's peerDependency on @screeps/backend,
-    // otherwise the whole authentication system breaks as there's now two places trying to set up 
-    // Passport strategies.
     execSync(
-      `npm install --no-progress -E --omit=peer ${newPackages.join(" ")}`,
+      `npm install --no-progress -E ${newPackages.join(" ")}`,
       {
-        cwd: ModsDir,
+        cwd: RootDir,
         stdio: "inherit",
         encoding: "utf8",
       },
     );
   }
 
+  const updatedDependencies = loadPackage(RootDir).dependencies || {};
+  writeManagedDeps(buildResolvedManagedDeps(mods, bots, updatedDependencies));
   console.log("Done updating");
 }
 
@@ -141,37 +283,35 @@ const updatePackages = (doUpdate) => {
   const mods = config.mods;
   const bots = config.bots;
 
-  const modsPackage = loadPackage(ModsDir);
-  const dependencies = modsPackage.dependencies || {};
+  const rootPackage = loadPackage(RootDir);
+  const dependencies = rootPackage.dependencies || {};
 
-  // Calculate package diff
   const configuredPackages = [...mods, ...Object.values(bots)];
+  const packagedMods = configuredPackages
+    .map((pkg) => {
+      const [name, version] = parseVersionSpec(pkg);
+      const installedName = resolvePackageNames([pkg], dependencies)[0];
+      return installedName ? [installedName, version] : undefined;
+    })
+    .filter((entry) => entry !== undefined);
+  const packageNames = [...new Set(packagedMods.map(([name]) => name))];
 
-  const packagedMods = configuredPackages.filter(
-    (pkg) =>
-      Object.entries(dependencies).some((dependency) =>
-        isDependency(pkg, dependency),
-      ),
-  ).map((pkg) => parseVersionSpec(pkg));
+  if (packageNames.length === 0) {
+    console.log("No installed mods/bots found for update checks");
+    return false;
+  }
 
   let outdated = {};
-  const outdatedFile = path.resolve(ModsDir, "outdated.json");
   try {
     // `npm outdated --json` returns 1 if there are outdated packages,
     // which causes `execSync` to throw an error.
-    execSync("npm outdated --json > outdated.json || true", {
-      cwd: ModsDir,
-      stdio: "inherit",
+    const output = execSync(`npm outdated --json ${packageNames.join(" ")} || true`, {
+      cwd: RootDir,
       encoding: "utf8",
-    })
-    const output = fs.readFileSync(outdatedFile).toString()
-    outdated = JSON.parse(output);
+      stdio: "pipe",
+    });
+    outdated = output.trim() ? JSON.parse(output) : {};
   } catch {
-  } finally {
-    try {
-      fs.unlinkSync(outdatedFile);
-    } catch {
-    }
   }
 
   const versionSpecs = [];
@@ -196,14 +336,13 @@ const updatePackages = (doUpdate) => {
   }
 
   console.log(`Updating outdated mods`, ...versionSpecs);
-  // FIXME: --omit=peer because we don't want to pull authmod's peerDependency on @screeps/backend,
-  // otherwise the whole authentication system breaks as there's now two places trying to set up 
-  // Passport strategies.
-  execSync(`npm install --loglevel=error --no-progress -E --omit=peer ${versionSpecs.join(" ")}`, {
-    cwd: ModsDir,
+  execSync(`npm install --loglevel=error --no-progress -E ${versionSpecs.join(" ")}`, {
+    cwd: RootDir,
     stdio: "inherit",
     encoding: "utf8",
   });
+  const updatedDependencies = loadPackage(RootDir).dependencies || {};
+  writeManagedDeps(buildResolvedManagedDeps(mods, bots, updatedDependencies));
   return false;
 };
 
@@ -211,32 +350,55 @@ const writeModsConfiguration = () => {
   console.log("Writing mods configuration");
   const mods = config.mods;
   const bots = config.bots;
-  const { dependencies = {} } = loadPackage(ModsDir);
+  const { dependencies = {} } = loadPackage(RootDir);
   /** @type {Pick<ResolvedConfig, "mods" | "bots">} */
   const modsJSON = { mods: [], bots: {} };
 
-  for (const [name, version] of Object.entries(dependencies)) {
-    const pkgDir = path.resolve(ModsDir, "node_modules", name);
-    const { main } = loadPackage(pkgDir);
-    if (!main) {
+  const configuredMods = resolvePackageNames(mods, dependencies);
+  const unresolvedMods = mods.filter(
+    (spec) => !resolvePackageNames([spec], dependencies)[0],
+  );
+  const configuredBots = Object.entries(bots).map(([botName, spec]) => {
+    const [name] = resolvePackageNames([spec], dependencies);
+    return [botName, name];
+  });
+
+  for (const modSpec of unresolvedMods) {
+    console.warn(`Could not resolve configured mod "${modSpec}" package.`);
+  }
+
+  for (const name of configuredMods) {
+    const pkgDir = path.resolve(RootDir, "node_modules", name);
+    const pkg = loadPackage(pkgDir);
+    const main = pkg.main || "index.js";
+
+    if (!pkg.screeps_mod) {
       console.warn(
-        `Missing 'main' key for ${name}, report this to the author of the package.`,
+        `Package "${name}" is missing "screeps_mod: true"; loading anyway because it is explicitly configured.`,
       );
     }
     const mainPath = path.resolve(pkgDir, main);
+    modsJSON.mods.push(mainPath);
+  }
 
-    if (mods.some((m) => m.includes(name) || version.includes(m))) {
-      modsJSON.mods.push(mainPath);
+  for (const [botName, name] of configuredBots) {
+    if (!name) {
+      console.warn(`Could not resolve configured bot "${botName}" package.`);
       continue;
     }
 
-    const bot = Object.entries(bots).find(
-      ([, dep]) => dep.includes(name) || version.includes(dep),
-    );
-    if (bot) {
-      modsJSON.bots[bot[0]] = path.dirname(mainPath);
-      continue;
+    const pkgDir = path.resolve(RootDir, "node_modules", name);
+    const pkg = loadPackage(pkgDir);
+    const main = pkg.main || "index.js";
+
+    if (!pkg.screeps_bot) {
+      console.warn(
+        `Package "${name}" for bot "${botName}" is missing "screeps_bot: true"; loading anyway because it is explicitly configured.`,
+      );
     }
+
+    const mainPath = path.resolve(pkgDir, main);
+    modsJSON.bots[botName] = path.dirname(mainPath);
   }
 
   fs.writeFileSync("mods.json", JSON.stringify(modsJSON, null, 2));
