@@ -1,0 +1,13 @@
+{
+  "name": "@screeps-server/backup-tool",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backup/restore Screeps Mongo + Redis via docker compose (run inside Docker with /var/run/docker.sock).",
+  "bin": {
+    "backup-tool": "./src/database.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

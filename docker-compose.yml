@@ -1,3 +1,7 @@
+# Stable project name so `docker compose` run from the backup-tool container
+# (cwd /workspace) targets the same stack as on the host. Override with COMPOSE_PROJECT_NAME if needed.
+name: ${COMPOSE_PROJECT_NAME:-screeps-server}
+
 services:
   screeps:
     image: ghcr.io/jomik/screeps-server:edge
@@ -17,6 +21,20 @@ services:
       STEAM_KEY: ${STEAM_KEY:?"Missing steam key"}
     restart: unless-stopped
     build: server
+
+  backup-tool:
+    profiles: ["tools"]
+    image: ghcr.io/jomik/screeps-server-backup-tool:edge
+    build:
+      context: ./backup-tool
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/workspace:rw
+    working_dir: /workspace
+    environment:
+      WORKSPACE_DIR: /workspace
+      # Optional: host repo path for nested bind mounts. If unset, backup-tool infers it from the /workspace mount.
+      HOST_WORKSPACE: ${HOST_WORKSPACE:-}
 
   mongo:
     image: mongo:4.4.30
