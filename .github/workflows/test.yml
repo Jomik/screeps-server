@@ -1,7 +1,7 @@
 name: Test server image
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - "main"
 
@@ -49,7 +49,8 @@ jobs:
         run: |
           docker run -d -p 21025:21025 -p 21028:21028 --env STEAM_KEY --name screeps -v ${CONFIG_FILE}:/screeps/config.yml ${TEST_TAG}
         env:
-          STEAM_KEY: ${{ secrets.STEAM_KEY }}
+          # Public CI-only placeholder; startup checks do not exercise Steam authentication.
+          STEAM_KEY: "00000000000000000000000000000000"
           CONFIG_FILE: ${{ format('{0}/{1}', github.workspace, 'test-config.yml') }}
       - name: Wait for container to be healthy
         run: |
